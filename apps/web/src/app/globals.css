@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 213 55% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 220 68% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 211 88% 42%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 214 45% 92%;
+    --muted-foreground: 215 16% 40%;
+    --destructive: 18 94% 61%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 86%;
+    --input: 214 32% 91%;
+    --ring: 211 88% 42%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 88% 4%;
+    --foreground: 204 45% 96%;
+    --card: 221 55% 8%;
+    --card-foreground: 204 45% 96%;
+    --primary: 214 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 190 92% 45%;
+    --secondary-foreground: 222 88% 4%;
+    --muted: 219 47% 13%;
+    --muted-foreground: 211 20% 70%;
+    --destructive: 15 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 45% 24%;
+    --input: 219 47% 13%;
+    --ring: 190 92% 45%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .section-container {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1280px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .section-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .surface-panel {
+    background:
+      linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.62)),
+      radial-gradient(circle at top left, hsl(var(--secondary) / 0.1), transparent 36%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 24px 64px rgb(15 23 42 / 0.12);
+  }
+
+  .enterprise-card {
+    border: 1px solid hsl(var(--border) / 0.82);
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.52));
+    box-shadow: 0 12px 30px rgb(15 23 42 / 0.08);
+  }
+}
