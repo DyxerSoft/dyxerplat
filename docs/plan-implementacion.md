@@ -19,29 +19,35 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
    - Login por email y contrasena.
    - JWT.
    - Super admin creado por seed.
+   - Estado: implementado.
 
 2. Seguridad:
    - Roles: `SUPER_ADMIN`, `ADMIN`, `USER`.
    - Permisos por modulo y accion.
    - Middleware de autenticacion y permisos en API.
+   - Administracion interna de usuarios, roles y permisos.
+   - Estado: implementado.
 
 3. CRM:
    - Companias.
    - Contactos encargados por compania.
    - Usuarios internos.
    - Roles y permisos.
+   - Estado: implementado para companias, contactos, usuarios, roles y permisos.
 
 4. Blog:
    - Publicaciones.
    - Categorias.
    - Tags.
    - Imagen de portada guardada en base de datos.
+   - Estado: implementado para publicaciones, blog publico e imagen de portada. Categorias y tags quedan modelados en BD para una segunda iteracion de UI.
 
 5. Auditoria basica:
    - `created_at`, `created_by_id`.
    - `updated_at`, `updated_by_id`.
    - `deleted_at`, `deleted_by_id`.
    - `is_deleted`.
+   - Estado: implementado en las tablas principales.
 
 ## Decisiones tecnicas
 
@@ -55,13 +61,11 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 
 - `main`: rama estable.
 - `feature/configuracion-inicial`: configuracion base del monorepo.
-- Futuras ramas sugeridas:
-  - `feature/autenticacion-y-permisos`
-  - `feature/landing-y-blog-publico`
-  - `feature/crm-companias-contactos`
-  - `feature/usuarios-roles-permisos`
-  - `feature/publicaciones-blog`
-  - `feature/diseno-plataforma`
+- `feature/autenticacion-y-permisos`: autenticacion, JWT, seed y permisos base.
+- `feature/landing-publica`: landing copiada desde `dixersft io`, blog/login en navegacion y estados vacios.
+- `feature/crm-companias-contactos`: companias y encargados de contacto.
+- `feature/publicaciones-blog`: publicaciones privadas y blog publico.
+- `feature/usuarios-roles-permisos`: usuarios, roles y permisos.
 
 ## Pendientes a confirmar
 
