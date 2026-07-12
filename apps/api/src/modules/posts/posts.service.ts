@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { env } from "../../config/env";
 import { prisma } from "../../database/prisma";
 import { AppError } from "../../common/errors/AppError";
-import type { CreatePostInput, ListPostsInput, UpdatePostInput } from "./posts.schemas";
+import type { CreatePostInput, ListPostsInput, TaxonomyInput, UpdatePostInput } from "./posts.schemas";
 
 function slugify(value: string) {
   return value
@@ -43,6 +43,12 @@ function toPostResponse(
   post: Prisma.PostGetPayload<{
     include: {
       author: true;
+      category: true;
+      tags: {
+        include: {
+          tag: true;
+        };
+      };
     };
   }>
 ) {
@@ -55,6 +61,20 @@ function toPostResponse(
     status: post.status,
     coverImageId: post.coverImageId,
     coverImageUrl: mediaUrl(post.coverImageId),
+    category: post.category && !post.category.isDeleted
+      ? {
+          id: post.category.id,
+          name: post.category.name,
+          slug: post.category.slug
+        }
+      : null,
+    tags: post.tags
+      .filter((item) => !item.tag.isDeleted)
+      .map((item) => ({
+        id: item.tag.id,
+        name: item.tag.name,
+        slug: item.tag.slug
+      })),
     author: {
       id: post.author.id,
       firstName: post.author.firstName,
@@ -63,6 +83,42 @@ function toPostResponse(
     publishedAt: post.publishedAt,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt
+  };
+}
+
+function toCategoryResponse(category: {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: { posts: number };
+}) {
+  return {
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    postsCount: category._count?.posts ?? 0,
+    createdAt: category.createdAt,
+    updatedAt: category.updatedAt
+  };
+}
+
+function toTagResponse(tag: {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: { posts: number };
+}) {
+  return {
+    id: tag.id,
+    name: tag.name,
+    slug: tag.slug,
+    postsCount: tag._count?.posts ?? 0,
+    createdAt: tag.createdAt,
+    updatedAt: tag.updatedAt
   };
 }
 
@@ -105,7 +161,13 @@ export async function listPosts(input: ListPostsInput) {
   const [items, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      include: { author: true },
+      include: {
+        author: true,
+        category: true,
+        tags: {
+          include: { tag: true }
+        }
+      },
       orderBy: { createdAt: "desc" },
       skip,
       take: input.pageSize
@@ -130,7 +192,13 @@ export async function listPublishedPosts() {
       isDeleted: false,
       status: "PUBLISHED"
     },
-    include: { author: true },
+    include: {
+      author: true,
+      category: true,
+      tags: {
+        include: { tag: true }
+      }
+    },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
   });
 
@@ -144,7 +212,13 @@ export async function getPublishedPost(slug: string) {
       isDeleted: false,
       status: "PUBLISHED"
     },
-    include: { author: true }
+    include: {
+      author: true,
+      category: true,
+      tags: {
+        include: { tag: true }
+      }
+    }
   });
 
   if (!post) {
@@ -156,6 +230,9 @@ export async function getPublishedPost(slug: string) {
 
 export async function createPost(input: CreatePostInput, actorId: string) {
   const coverImageId = input.coverImage ? await createMedia(input.coverImage, actorId) : null;
+  await validateCategory(input.categoryId);
+  const tags = await validateTags(input.tagIds);
+
   const post = await prisma.post.create({
     data: {
       title: input.title.trim(),
@@ -164,12 +241,24 @@ export async function createPost(input: CreatePostInput, actorId: string) {
       content: input.content,
       status: input.status,
       coverImageId,
+      categoryId: input.categoryId || null,
       authorId: actorId,
       publishedAt: input.status === "PUBLISHED" ? new Date() : null,
       createdById: actorId,
-      updatedById: actorId
+      updatedById: actorId,
+      tags: {
+        create: tags.map((tag) => ({
+          tagId: tag.id
+        }))
+      }
     },
-    include: { author: true }
+    include: {
+      author: true,
+      category: true,
+      tags: {
+        include: { tag: true }
+      }
+    }
   });
 
   return toPostResponse(post);
@@ -188,19 +277,43 @@ export async function updatePost(postId: string, input: UpdatePostInput, actorId
   }
 
   const coverImageId = input.coverImage ? await createMedia(input.coverImage, actorId) : undefined;
+  if (input.categoryId !== undefined) {
+    await validateCategory(input.categoryId);
+  }
+  const tags = input.tagIds ? await validateTags(input.tagIds) : null;
   const nextStatus = input.status ?? existing.status;
-  const post = await prisma.post.update({
-    where: { id: postId },
-    data: {
-      ...(input.title !== undefined ? { title: input.title.trim(), slug: await buildUniqueSlug(input.title, postId) } : {}),
-      ...(input.excerpt !== undefined ? { excerpt: input.excerpt?.trim() || null } : {}),
-      ...(input.content !== undefined ? { content: input.content } : {}),
-      ...(input.status !== undefined ? { status: input.status } : {}),
-      ...(coverImageId !== undefined ? { coverImageId } : {}),
-      publishedAt: nextStatus === "PUBLISHED" && !existing.publishedAt ? new Date() : nextStatus !== "PUBLISHED" ? null : existing.publishedAt,
-      updatedById: actorId
-    },
-    include: { author: true }
+
+  const post = await prisma.$transaction(async (tx) => {
+    if (tags) {
+      await tx.postTagRelation.deleteMany({ where: { postId } });
+      await tx.postTagRelation.createMany({
+        data: tags.map((tag) => ({
+          postId,
+          tagId: tag.id
+        }))
+      });
+    }
+
+    return tx.post.update({
+      where: { id: postId },
+      data: {
+        ...(input.title !== undefined ? { title: input.title.trim(), slug: await buildUniqueSlug(input.title, postId) } : {}),
+        ...(input.excerpt !== undefined ? { excerpt: input.excerpt?.trim() || null } : {}),
+        ...(input.content !== undefined ? { content: input.content } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.categoryId !== undefined ? { categoryId: input.categoryId || null } : {}),
+        ...(coverImageId !== undefined ? { coverImageId } : {}),
+        publishedAt: nextStatus === "PUBLISHED" && !existing.publishedAt ? new Date() : nextStatus !== "PUBLISHED" ? null : existing.publishedAt,
+        updatedById: actorId
+      },
+      include: {
+        author: true,
+        category: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
   });
 
   return toPostResponse(post);
@@ -229,4 +342,242 @@ export async function deletePost(postId: string, actorId: string) {
   });
 
   return { id: postId };
+}
+
+export async function listCategories() {
+  const categories = await prisma.postCategory.findMany({
+    where: { isDeleted: false },
+    include: {
+      _count: {
+        select: {
+          posts: {
+            where: { isDeleted: false }
+          }
+        }
+      }
+    },
+    orderBy: { name: "asc" }
+  });
+
+  return categories.map(toCategoryResponse);
+}
+
+export async function createCategory(input: TaxonomyInput, actorId: string) {
+  const slug = await buildUniqueCategorySlug(input.name);
+  const category = await prisma.postCategory.create({
+    data: {
+      name: input.name.trim(),
+      slug,
+      createdById: actorId,
+      updatedById: actorId
+    },
+    include: {
+      _count: {
+        select: { posts: true }
+      }
+    }
+  });
+
+  return toCategoryResponse(category);
+}
+
+export async function updateCategory(categoryId: string, input: TaxonomyInput, actorId: string) {
+  const existing = await prisma.postCategory.findFirst({
+    where: { id: categoryId, isDeleted: false }
+  });
+
+  if (!existing) {
+    throw new AppError("La categoria no existe o fue eliminada.", 404, "CATEGORY_NOT_FOUND");
+  }
+
+  const category = await prisma.postCategory.update({
+    where: { id: categoryId },
+    data: {
+      name: input.name.trim(),
+      slug: await buildUniqueCategorySlug(input.name, categoryId),
+      updatedById: actorId
+    },
+    include: {
+      _count: {
+        select: { posts: true }
+      }
+    }
+  });
+
+  return toCategoryResponse(category);
+}
+
+export async function deleteCategory(categoryId: string, actorId: string) {
+  const existing = await prisma.postCategory.findFirst({
+    where: { id: categoryId, isDeleted: false }
+  });
+
+  if (!existing) {
+    throw new AppError("La categoria no existe o ya fue eliminada.", 404, "CATEGORY_NOT_FOUND");
+  }
+
+  await prisma.postCategory.update({
+    where: { id: categoryId },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+      deletedById: actorId,
+      updatedById: actorId
+    }
+  });
+
+  return { id: categoryId };
+}
+
+export async function listTags() {
+  const tags = await prisma.postTag.findMany({
+    where: { isDeleted: false },
+    include: {
+      _count: {
+        select: {
+          posts: true
+        }
+      }
+    },
+    orderBy: { name: "asc" }
+  });
+
+  return tags.map(toTagResponse);
+}
+
+export async function createTag(input: TaxonomyInput, actorId: string) {
+  const tag = await prisma.postTag.create({
+    data: {
+      name: input.name.trim(),
+      slug: await buildUniqueTagSlug(input.name),
+      createdById: actorId,
+      updatedById: actorId
+    },
+    include: {
+      _count: {
+        select: { posts: true }
+      }
+    }
+  });
+
+  return toTagResponse(tag);
+}
+
+export async function updateTag(tagId: string, input: TaxonomyInput, actorId: string) {
+  const existing = await prisma.postTag.findFirst({
+    where: { id: tagId, isDeleted: false }
+  });
+
+  if (!existing) {
+    throw new AppError("La etiqueta no existe o fue eliminada.", 404, "TAG_NOT_FOUND");
+  }
+
+  const tag = await prisma.postTag.update({
+    where: { id: tagId },
+    data: {
+      name: input.name.trim(),
+      slug: await buildUniqueTagSlug(input.name, tagId),
+      updatedById: actorId
+    },
+    include: {
+      _count: {
+        select: { posts: true }
+      }
+    }
+  });
+
+  return toTagResponse(tag);
+}
+
+export async function deleteTag(tagId: string, actorId: string) {
+  const existing = await prisma.postTag.findFirst({
+    where: { id: tagId, isDeleted: false }
+  });
+
+  if (!existing) {
+    throw new AppError("La etiqueta no existe o ya fue eliminada.", 404, "TAG_NOT_FOUND");
+  }
+
+  await prisma.postTag.update({
+    where: { id: tagId },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+      deletedById: actorId,
+      updatedById: actorId
+    }
+  });
+
+  return { id: tagId };
+}
+
+async function validateCategory(categoryId: string | null | undefined) {
+  if (!categoryId) {
+    return null;
+  }
+
+  const category = await prisma.postCategory.findFirst({
+    where: { id: categoryId, isDeleted: false }
+  });
+
+  if (!category) {
+    throw new AppError("La categoria seleccionada no es valida.", 422, "INVALID_CATEGORY");
+  }
+
+  return category;
+}
+
+async function validateTags(tagIds: string[] = []) {
+  const uniqueTagIds = Array.from(new Set(tagIds));
+  const tags = await prisma.postTag.findMany({
+    where: { id: { in: uniqueTagIds }, isDeleted: false }
+  });
+
+  if (tags.length !== uniqueTagIds.length) {
+    throw new AppError("Una o mas etiquetas seleccionadas no son validas.", 422, "INVALID_TAGS");
+  }
+
+  return tags;
+}
+
+async function buildUniqueCategorySlug(name: string, categoryId?: string) {
+  const baseSlug = slugify(name);
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (
+    await prisma.postCategory.findFirst({
+      where: {
+        slug,
+        isDeleted: false,
+        ...(categoryId ? { id: { not: categoryId } } : {})
+      }
+    })
+  ) {
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  return slug;
+}
+
+async function buildUniqueTagSlug(name: string, tagId?: string) {
+  const baseSlug = slugify(name);
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (
+    await prisma.postTag.findFirst({
+      where: {
+        slug,
+        isDeleted: false,
+        ...(tagId ? { id: { not: tagId } } : {})
+      }
+    })
+  ) {
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  return slug;
 }

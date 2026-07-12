@@ -40,7 +40,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
    - Categorias.
    - Tags.
    - Imagen de portada guardada en base de datos.
-   - Estado: implementado para publicaciones, blog publico e imagen de portada. Categorias y tags quedan modelados en BD para una segunda iteracion de UI.
+   - Estado: implementado para publicaciones, categorias, tags, blog publico e imagen de portada.
 
 5. Auditoria basica:
    - `created_at`, `created_by_id`.
@@ -66,6 +66,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 - `feature/crm-companias-contactos`: companias y encargados de contacto.
 - `feature/publicaciones-blog`: publicaciones privadas y blog publico.
 - `feature/usuarios-roles-permisos`: usuarios, roles y permisos.
+- `feature/categorias-tags-blog`: categorias y tags para publicaciones.
 
 ## Pendientes a confirmar
 

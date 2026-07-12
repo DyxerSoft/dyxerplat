@@ -2,7 +2,7 @@
 
 import { apiRequest } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
-import type { PaginatedPosts, Post, PostFormValues, PostStatus } from "../types/post.types";
+import type { PaginatedPosts, Post, PostCategory, PostFormValues, PostStatus, PostTag, TaxonomyFormValues } from "../types/post.types";
 
 function getToken() {
   return getStoredSession()?.token ?? null;
@@ -51,6 +51,64 @@ export function updatePost(postId: string, values: PostFormValues) {
 
 export function deletePost(postId: string) {
   return apiRequest<{ id: string }>(`/posts/${postId}`, {
+    method: "DELETE",
+    token: getToken()
+  });
+}
+
+export function listPostCategories() {
+  return apiRequest<PostCategory[]>("/posts/categories", {
+    token: getToken()
+  });
+}
+
+export function createPostCategory(values: TaxonomyFormValues) {
+  return apiRequest<PostCategory>("/posts/categories", {
+    method: "POST",
+    token: getToken(),
+    body: values
+  });
+}
+
+export function updatePostCategory(categoryId: string, values: TaxonomyFormValues) {
+  return apiRequest<PostCategory>(`/posts/categories/${categoryId}`, {
+    method: "PUT",
+    token: getToken(),
+    body: values
+  });
+}
+
+export function deletePostCategory(categoryId: string) {
+  return apiRequest<{ id: string }>(`/posts/categories/${categoryId}`, {
+    method: "DELETE",
+    token: getToken()
+  });
+}
+
+export function listPostTags() {
+  return apiRequest<PostTag[]>("/posts/tags", {
+    token: getToken()
+  });
+}
+
+export function createPostTag(values: TaxonomyFormValues) {
+  return apiRequest<PostTag>("/posts/tags", {
+    method: "POST",
+    token: getToken(),
+    body: values
+  });
+}
+
+export function updatePostTag(tagId: string, values: TaxonomyFormValues) {
+  return apiRequest<PostTag>(`/posts/tags/${tagId}`, {
+    method: "PUT",
+    token: getToken(),
+    body: values
+  });
+}
+
+export function deletePostTag(tagId: string) {
+  return apiRequest<{ id: string }>(`/posts/tags/${tagId}`, {
     method: "DELETE",
     token: getToken()
   });

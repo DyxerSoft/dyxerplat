@@ -30,9 +30,16 @@ export function PublicPostDetail({ slug }: Readonly<{ slug: string }>) {
         ) : post ? (
           <article className="mx-auto mt-10 max-w-4xl">
             {post.coverImageUrl ? <img src={post.coverImageUrl} alt="" className="mb-8 aspect-[16/9] w-full rounded-xl object-cover" /> : null}
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">DyxerSoft Blog</p>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">{post.category?.name ?? "DyxerSoft Blog"}</p>
             <h1 className="mt-3 text-4xl font-black leading-tight md:text-5xl">{post.title}</h1>
             {post.excerpt ? <p className="mt-5 text-lg leading-8 text-muted-foreground">{post.excerpt}</p> : null}
+            {post.tags.length > 0 ? (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span key={tag.id} className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">{tag.name}</span>
+                ))}
+              </div>
+            ) : null}
             <div className="mt-8 whitespace-pre-wrap rounded-xl border border-border bg-card p-6 leading-8 text-foreground">{post.content}</div>
           </article>
         ) : (

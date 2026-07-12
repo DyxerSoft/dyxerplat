@@ -45,9 +45,16 @@ export function PublicBlog() {
                 <Link key={post.id} href={`/blog/${post.slug}`} className="enterprise-card block overflow-hidden rounded-xl">
                   {post.coverImageUrl ? <img src={post.coverImageUrl} alt="" className="aspect-[16/9] w-full object-cover" /> : null}
                   <div className="p-6">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">Publicacion</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-secondary">{post.category?.name ?? "Publicacion"}</p>
                     <h2 className="mt-2 text-xl font-black">{post.title}</h2>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">{post.excerpt || "Leer publicacion completa."}</p>
+                    {post.tags.length > 0 ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {post.tags.map((tag) => (
+                          <span key={tag.id} className="rounded-full bg-muted px-2 py-1 text-xs font-bold text-muted-foreground">{tag.name}</span>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </Link>
               ))}

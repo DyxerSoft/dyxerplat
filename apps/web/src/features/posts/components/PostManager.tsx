@@ -1,19 +1,34 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import { Edit, FileText, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, FileText, Plus, Search, Tags, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PERMISSIONS } from "@dyxerplat/shared";
 import { ApiClientError } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
-import { createPost, deletePost, listPosts, updatePost } from "../services/post-service";
-import type { Post, PostFormValues, PostStatus } from "../types/post.types";
+import {
+  createPost,
+  createPostCategory,
+  createPostTag,
+  deletePost,
+  deletePostCategory,
+  deletePostTag,
+  listPostCategories,
+  listPosts,
+  listPostTags,
+  updatePost,
+  updatePostCategory,
+  updatePostTag
+} from "../services/post-service";
+import type { Post, PostCategory, PostFormValues, PostStatus, PostTag } from "../types/post.types";
 
 const emptyForm: PostFormValues = {
   title: "",
   excerpt: "",
   content: "",
   status: "DRAFT",
+  categoryId: "",
+  tagIds: [],
   coverImage: null
 };
 
@@ -38,8 +53,15 @@ export function PostManager() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTaxonomyModalOpen, setIsTaxonomyModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostFormValues>(emptyForm);
+  const [categories, setCategories] = useState<PostCategory[]>([]);
+  const [tags, setTags] = useState<PostTag[]>([]);
+  const [editingCategory, setEditingCategory] = useState<PostCategory | null>(null);
+  const [editingTag, setEditingTag] = useState<PostTag | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [tagName, setTagName] = useState("");
 
   const permissions = useMemo(() => {
     if (typeof window === "undefined") {
@@ -51,6 +73,7 @@ export function PostManager() {
   const canCreate = permissions.includes(PERMISSIONS.POSTS_CREATE);
   const canUpdate = permissions.includes(PERMISSIONS.POSTS_UPDATE);
   const canDelete = permissions.includes(PERMISSIONS.POSTS_DELETE);
+  const canManageTaxonomies = canCreate || canUpdate || canDelete;
 
   const loadPosts = async () => {
     setIsLoading(true);
@@ -65,9 +88,23 @@ export function PostManager() {
     }
   };
 
+  const loadTaxonomies = async () => {
+    try {
+      const [categoriesResult, tagsResult] = await Promise.all([listPostCategories(), listPostTags()]);
+      setCategories(categoriesResult);
+      setTags(tagsResult);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
   useEffect(() => {
     void loadPosts();
   }, [page]);
+
+  useEffect(() => {
+    void loadTaxonomies();
+  }, []);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,6 +125,8 @@ export function PostManager() {
       excerpt: post.excerpt ?? "",
       content: post.content,
       status: post.status,
+      categoryId: post.category?.id ?? "",
+      tagIds: post.tags.map((tag) => tag.id),
       coverImage: null
     });
     setIsModalOpen(true);
@@ -125,6 +164,89 @@ export function PostManager() {
     }
   };
 
+  const toggleTag = (tagId: string) => {
+    setForm((current) => ({
+      ...current,
+      tagIds: current.tagIds.includes(tagId)
+        ? current.tagIds.filter((id) => id !== tagId)
+        : [...current.tagIds, tagId]
+    }));
+  };
+
+  const openTaxonomies = () => {
+    setEditingCategory(null);
+    setEditingTag(null);
+    setCategoryName("");
+    setTagName("");
+    setIsTaxonomyModalOpen(true);
+  };
+
+  const handleSaveCategory = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      if (editingCategory) {
+        await updatePostCategory(editingCategory.id, { name: categoryName });
+        toast.success("Categoria actualizada correctamente.");
+      } else {
+        await createPostCategory({ name: categoryName });
+        toast.success("Categoria creada correctamente.");
+      }
+      setEditingCategory(null);
+      setCategoryName("");
+      await loadTaxonomies();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleSaveTag = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      if (editingTag) {
+        await updatePostTag(editingTag.id, { name: tagName });
+        toast.success("Etiqueta actualizada correctamente.");
+      } else {
+        await createPostTag({ name: tagName });
+        toast.success("Etiqueta creada correctamente.");
+      }
+      setEditingTag(null);
+      setTagName("");
+      await loadTaxonomies();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleDeleteCategory = async (category: PostCategory) => {
+    if (!window.confirm(`Eliminar la categoria ${category.name}? Esta accion sera logica.`)) {
+      return;
+    }
+
+    try {
+      await deletePostCategory(category.id);
+      toast.success("Categoria eliminada correctamente.");
+      await loadTaxonomies();
+      await loadPosts();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleDeleteTag = async (tag: PostTag) => {
+    if (!window.confirm(`Eliminar la etiqueta ${tag.name}? Esta accion sera logica.`)) {
+      return;
+    }
+
+    try {
+      await deletePostTag(tag.id);
+      toast.success("Etiqueta eliminada correctamente.");
+      await loadTaxonomies();
+      await loadPosts();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
   const handleDelete = async (post: Post) => {
     if (!window.confirm(`Eliminar la publicacion "${post.title}"? Esta accion sera logica.`)) {
       return;
@@ -148,12 +270,20 @@ export function PostManager() {
             <h1 className="mt-2 text-3xl font-black">Publicaciones</h1>
             <p className="mt-2 text-sm text-muted-foreground">Crea y publica contenido para el blog publico.</p>
           </div>
-          {canCreate ? (
-            <button type="button" onClick={openCreate} className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Crear publicacion
-            </button>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {canManageTaxonomies ? (
+              <button type="button" onClick={openTaxonomies} className="inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-bold hover:bg-muted">
+                <Tags className="mr-2 h-4 w-4" />
+                Categorias y tags
+              </button>
+            ) : null}
+            {canCreate ? (
+              <button type="button" onClick={openCreate} className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Crear publicacion
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <form onSubmit={handleSearch} className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_auto]">
@@ -197,7 +327,7 @@ export function PostManager() {
                 <tr key={post.id} className="border-t border-border">
                   <td className="px-4 py-3">
                     <p className="font-bold">{post.title}</p>
-                    <p className="text-xs text-muted-foreground">/{post.slug}</p>
+                    <p className="text-xs text-muted-foreground">/{post.slug} {post.category ? `- ${post.category.name}` : ""}</p>
                   </td>
                   <td className="px-4 py-3">{statusLabel(post.status)}</td>
                   <td className="px-4 py-3">{post.author.firstName} {post.author.lastName}</td>
@@ -249,11 +379,80 @@ export function PostManager() {
                   <input type="file" accept="image/*" onChange={handleImage} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
                 </label>
               </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[260px_1fr]">
+                <label className="space-y-1">
+                  <span className="text-sm font-bold">Categoria</span>
+                  <select value={form.categoryId ?? ""} onChange={(event) => setForm({ ...form, categoryId: event.target.value || null })} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">Sin categoria</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>{category.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="space-y-2">
+                  <p className="text-sm font-bold">Tags</p>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {tags.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No hay tags creados.</p>
+                    ) : tags.map((tag) => (
+                      <label key={tag.id} className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
+                        <input type="checkbox" checked={form.tagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
+                        {tag.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-md border border-border px-4 py-2 text-sm font-bold hover:bg-muted">Cancelar</button>
                 <button type="submit" className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">{editingPost ? "Guardar cambios" : "Crear publicacion"}</button>
               </div>
             </form>
+          </section>
+        </div>
+      ) : null}
+
+      {isTaxonomyModalOpen ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+          <section className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg border border-border bg-card shadow-xl">
+            <header className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="text-xl font-black">Categorias y tags</h2>
+              <button type="button" onClick={() => setIsTaxonomyModalOpen(false)} className="rounded-md border border-border px-3 py-1 text-sm font-bold hover:bg-muted">Cerrar</button>
+            </header>
+            <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2">
+              <TaxonomyPanel
+                title="Categorias"
+                items={categories}
+                value={categoryName}
+                setValue={setCategoryName}
+                editingName={editingCategory?.name ?? null}
+                onSubmit={handleSaveCategory}
+                onEdit={(category) => {
+                  setEditingCategory(category);
+                  setCategoryName(category.name);
+                }}
+                onDelete={handleDeleteCategory}
+                canCreate={canCreate}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+              />
+              <TaxonomyPanel
+                title="Tags"
+                items={tags}
+                value={tagName}
+                setValue={setTagName}
+                editingName={editingTag?.name ?? null}
+                onSubmit={handleSaveTag}
+                onEdit={(tag) => {
+                  setEditingTag(tag);
+                  setTagName(tag.name);
+                }}
+                onDelete={handleDeleteTag}
+                canCreate={canCreate}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+              />
+            </div>
           </section>
         </div>
       ) : null}
@@ -268,6 +467,93 @@ function statusLabel(status: PostStatus) {
     ARCHIVED: "Archivado"
   };
   return labels[status];
+}
+
+function TaxonomyPanel<TItem extends { id: string; name: string; slug: string; postsCount: number }>({
+  title,
+  items,
+  value,
+  setValue,
+  editingName,
+  onSubmit,
+  onEdit,
+  onDelete,
+  canCreate,
+  canUpdate,
+  canDelete
+}: Readonly<{
+  title: string;
+  items: TItem[];
+  value: string;
+  setValue: (value: string) => void;
+  editingName: string | null;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onEdit: (item: TItem) => void;
+  onDelete: (item: TItem) => void;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+}>) {
+  return (
+    <section className="space-y-4 rounded-lg border border-border p-4">
+      <div>
+        <h3 className="text-lg font-black">{title}</h3>
+        <p className="text-sm text-muted-foreground">{items.length} registros activos</p>
+      </div>
+
+      {(canCreate || editingName) ? (
+        <form onSubmit={onSubmit} className="flex gap-2">
+          <input value={value} onChange={(event) => setValue(event.target.value)} required placeholder="Nombre" className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+            {editingName ? "Guardar" : "Crear"}
+          </button>
+        </form>
+      ) : null}
+
+      <div className="overflow-hidden rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/70 text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">Nombre</th>
+              <th className="px-3 py-2">Posts</th>
+              <th className="px-3 py-2 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="px-3 py-8 text-center text-muted-foreground">No hay registros.</td>
+              </tr>
+            ) : (
+              items.map((item) => (
+                <tr key={item.id} className="border-t border-border">
+                  <td className="px-3 py-2">
+                    <p className="font-bold">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">/{item.slug}</p>
+                  </td>
+                  <td className="px-3 py-2">{item.postsCount}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex justify-end gap-2">
+                      {canUpdate ? (
+                        <button type="button" onClick={() => onEdit(item)} className="rounded-md border border-border p-2 hover:bg-muted" title="Editar">
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      ) : null}
+                      {canDelete ? (
+                        <button type="button" onClick={() => onDelete(item)} className="rounded-md border border-border p-2 text-destructive hover:bg-destructive/10" title="Eliminar">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 function TextField({
