@@ -14,6 +14,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1),
   API_PORT: z.coerce.number().default(4000),
+  API_BASE_URL: z.string().default("http://localhost:4000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   JWT_SECRET: z.string().min(20),
   JWT_EXPIRES_IN: z.string().default("8h")
