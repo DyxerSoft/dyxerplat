@@ -3,9 +3,9 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./src/app/**/*.{ts,tsx}",
-    "./src/components/**/*.{ts,tsx}",
-    "./src/lib/**/*.{ts,tsx}"
+    "./src/app/**/*.{js,jsx,ts,tsx}",
+    "./src/components/**/*.{js,jsx,ts,tsx}",
+    "./src/lib/**/*.{js,jsx,ts,tsx}"
   ],
   theme: {
     extend: {
@@ -43,7 +43,7 @@ const config: Config = {
       }
     }
   },
-  plugins: []
+  plugins: [require("tailwindcss-animate")]
 };
 
 export default config;
