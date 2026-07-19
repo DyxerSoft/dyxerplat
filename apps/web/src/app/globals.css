@@ -123,6 +123,32 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  .section-eyebrow {
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--secondary));
+  }
+
+  .section-title {
+    max-width: 52rem;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: hsl(var(--foreground));
+  }
+
+  .section-copy {
+    margin-top: 1.25rem;
+    max-width: 42rem;
+    font-size: 1.075rem;
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+  }
   
   @media (min-width: 640px) {
     .section-container {
@@ -291,5 +317,19 @@
 
   to {
     transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

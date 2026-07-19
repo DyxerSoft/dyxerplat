@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "yarn@1.22.22",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*"],
   "scripts": {
     "dev": "concurrently -n api,web -c cyan,blue \"yarn workspace @dyxerplat/api dev\" \"yarn workspace @dyxerplat/web dev\"",
     "dev:api": "yarn workspace @dyxerplat/api dev",

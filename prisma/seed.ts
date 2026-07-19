@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
-import { PERMISSIONS, ROLE_CODES } from "@dyxerplat/shared";
+import { PERMISSIONS } from "../apps/api/src/common/constants/permissions";
+import { ROLE_CODES } from "../apps/api/src/common/constants/roles";
 
 const prisma = new PrismaClient();
 

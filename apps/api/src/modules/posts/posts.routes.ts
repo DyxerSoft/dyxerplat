@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { PERMISSIONS } from "@dyxerplat/shared";
+import { PERMISSIONS } from "../../common/constants/permissions";
 import { authenticate } from "../../common/middlewares/auth.middleware";
 import { asyncHandler } from "../../common/middlewares/async-handler";
 import { requirePermission } from "../../common/middlewares/permission.middleware";

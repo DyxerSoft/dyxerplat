@@ -9,7 +9,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 - Monorepo con Yarn workspaces.
 - `apps/web`: Next.js para landing publica, blog, login y plataforma interna.
 - `apps/api`: Node.js, Express, Prisma y PostgreSQL.
-- `packages/shared`: constantes compartidas de roles, permisos y contratos simples.
+- Cada aplicacion mantiene sus propios tipos y constantes dentro de `apps/api` y `apps/web`.
 - `prisma`: esquema, migraciones y seed de datos base.
 - `docker-compose.yml`: PostgreSQL local para desarrollo.
 

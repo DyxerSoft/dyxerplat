@@ -23,9 +23,8 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mlgywkel';
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   empresa: z.string().min(1, 'La empresa es requerida'),
-  cargo: z.string().optional(),
   correo: z.string().email('Correo electronico invalido'),
-  telefono: z.string().min(1, 'El telefono es requerido'),
+  telefono: z.string().optional(),
   servicio: z.string().min(1, 'Selecciona un servicio'),
   mensaje: z.string().min(10, 'El mensaje debe tener al menos 10 caracteres'),
 });
@@ -64,10 +63,9 @@ function ContactForm() {
       const payload = {
         nombre: data.nombre,
         empresa: data.empresa,
-        cargo: data.cargo || 'No indicado',
         correo: data.correo,
         email: data.correo,
-        telefono: data.telefono,
+        telefono: data.telefono || 'No indicado',
         servicio: serviceLabel,
         mensaje: data.mensaje,
         enviado_en: timestamp,
@@ -115,20 +113,14 @@ function ContactForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cargo" className="text-foreground">Cargo</Label>
-          <Input id="cargo" {...register('cargo')} placeholder="Tu cargo en la empresa" className={inputClass} />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="correo" className="text-foreground">Correo electronico *</Label>
           <Input id="correo" type="email" {...register('correo')} placeholder="tu@email.com" className={inputClass} />
           {errors.correo && <p className="text-sm text-destructive">{errors.correo.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="telefono" className="text-foreground">Telefono / WhatsApp *</Label>
+          <Label htmlFor="telefono" className="text-foreground">Telefono / WhatsApp</Label>
           <Input id="telefono" {...register('telefono')} placeholder="62069477" className={inputClass} />
-          {errors.telefono && <p className="text-sm text-destructive">{errors.telefono.message}</p>}
         </div>
 
         <div className="space-y-2">

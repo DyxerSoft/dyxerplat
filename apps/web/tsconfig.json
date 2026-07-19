@@ -11,9 +11,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@dyxerplat/shared": ["../../packages/shared/src/index.ts"],
-      "@dyxerplat/shared/*": ["../../packages/shared/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".next/types/**/*.ts"],

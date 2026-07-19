@@ -12,10 +12,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@dyxerplat/shared": ["packages/shared/src/index.ts"],
-      "@dyxerplat/shared/*": ["packages/shared/src/*"]
-    }
+    "baseUrl": "."
   }
 }

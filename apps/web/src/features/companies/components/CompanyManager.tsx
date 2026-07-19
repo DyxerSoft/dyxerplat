@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Building2, Edit, Plus, Search, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
-import { PERMISSIONS } from "@dyxerplat/shared";
+import { PERMISSIONS } from "@/lib/permissions";
 import { ApiClientError } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
 import {
