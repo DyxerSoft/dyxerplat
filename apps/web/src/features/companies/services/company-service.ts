@@ -8,8 +8,8 @@ import type {
   CompanyFormValues,
   CompanyStatus,
   ContactFormValues,
-  PaginatedCompanies
-  , PaginatedContacts
+  PaginatedCompanies,
+  PaginatedContacts
 } from "../types/company.types";
 
 function getToken() {

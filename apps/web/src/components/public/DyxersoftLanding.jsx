@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ContactForm from '@/components/public/ContactForm.jsx';
+import { LandingBlogSection } from '@/features/posts/components/LandingBlogSection';
 import pigimDashboard from '@/assets/screenshots/pigim-dashboard-desktop.jpg';
 
 const problems = [
@@ -298,6 +299,8 @@ function DyxersoftLanding() {
           </motion.div>
         </div>
       </section>
+
+      <LandingBlogSection />
 
       <section className="dark-cta border-y border-secondary/15 py-16 text-primary-foreground lg:py-20">
         <motion.div {...reveal} className="section-container flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">

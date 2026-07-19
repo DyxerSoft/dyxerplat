@@ -2,7 +2,7 @@
 
 import { apiRequest } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
-import type { PaginatedPosts, Post, PostFormValues, PostStatus } from "../types/post.types";
+import type { BlogTaxonomy, PaginatedPosts, Post, PostFormValues, PostStatus, PublicPostsPage } from "../types/post.types";
 
 function getToken() {
   return getStoredSession()?.token ?? null;
@@ -25,8 +25,8 @@ export function listPosts(params: { q?: string; status?: PostStatus | ""; page?:
   });
 }
 
-export function listPublishedPosts() {
-  return apiRequest<Post[]>("/posts/public");
+export function listPublishedPosts(params: { q?: string; category?: string; tag?: string; page?: number; pageSize?: number } = {}) {
+  return apiRequest<PublicPostsPage>(`/posts/public${queryString(params)}`);
 }
 
 export function getPublishedPost(slug: string) {
@@ -55,3 +55,9 @@ export function deletePost(postId: string) {
     token: getToken()
   });
 }
+
+type TaxonomyKind = "categories" | "tags";
+export function listTaxonomies(kind: TaxonomyKind) { return apiRequest<BlogTaxonomy[]>(`/posts/${kind}`, { token: getToken() }); }
+export function createTaxonomy(kind: TaxonomyKind, name: string) { return apiRequest<BlogTaxonomy>(`/posts/${kind}`, { method: "POST", token: getToken(), body: { name } }); }
+export function updateTaxonomy(kind: TaxonomyKind, id: string, name: string) { return apiRequest<BlogTaxonomy>(`/posts/${kind}/${id}`, { method: "PUT", token: getToken(), body: { name } }); }
+export function deleteTaxonomy(kind: TaxonomyKind, id: string) { return apiRequest<{ id: string }>(`/posts/${kind}/${id}`, { method: "DELETE", token: getToken() }); }

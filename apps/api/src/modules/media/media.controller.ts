@@ -23,5 +23,6 @@ export async function getMediaController(req: Request, res: Response) {
   res.setHeader("Content-Type", media.mimeType);
   res.setHeader("Content-Length", media.size);
   res.setHeader("Cache-Control", "public, max-age=86400");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   return res.send(Buffer.from(media.data));
 }

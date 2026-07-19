@@ -9,6 +9,8 @@ export type Post = {
   status: PostStatus;
   coverImageId: string | null;
   coverImageUrl: string | null;
+  category: BlogTaxonomy | null;
+  tags: BlogTaxonomy[];
   author: {
     id: string;
     firstName: string;
@@ -29,7 +31,12 @@ export type PostFormValues = {
     mimeType: string;
     dataBase64: string;
   } | null;
+  categoryId: string;
+  tagIds: string[];
 };
+
+export type BlogTaxonomy = { id: string; name: string; slug: string; _count?: { posts: number } };
+export type PublicPostsPage = PaginatedPosts & { filters: { categories: BlogTaxonomy[]; tags: BlogTaxonomy[] } };
 
 export type PaginatedPosts = {
   items: Post[];

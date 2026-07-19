@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPublishedPost } from "../services/post-service";
 import type { Post } from "../types/post.types";
@@ -9,39 +9,9 @@ import type { Post } from "../types/post.types";
 export function PublicPostDetail({ slug }: Readonly<{ slug: string }>) {
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    getPublishedPost(slug)
-      .then(setPost)
-      .catch(() => setPost(null))
-      .finally(() => setIsLoading(false));
-  }, [slug]);
-
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="section-container py-8">
-        <Link href="/blog" className="inline-flex items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-bold hover:bg-muted">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver al blog
-        </Link>
-
-        {isLoading ? (
-          <p className="mt-10 text-muted-foreground">Cargando publicacion...</p>
-        ) : post ? (
-          <article className="mx-auto mt-10 max-w-4xl">
-            {post.coverImageUrl ? <img src={post.coverImageUrl} alt="" className="mb-8 aspect-[16/9] w-full rounded-xl object-cover" /> : null}
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">DyxerSoft Blog</p>
-            <h1 className="mt-3 text-4xl font-black leading-tight md:text-5xl">{post.title}</h1>
-            {post.excerpt ? <p className="mt-5 text-lg leading-8 text-muted-foreground">{post.excerpt}</p> : null}
-            <div className="mt-8 whitespace-pre-wrap rounded-xl border border-border bg-card p-6 leading-8 text-foreground">{post.content}</div>
-          </article>
-        ) : (
-          <section className="mt-10 rounded-xl border border-border bg-card p-8 text-center">
-            <h1 className="text-2xl font-black">Publicacion no encontrada</h1>
-            <p className="mt-3 text-muted-foreground">La publicacion no existe o aun no fue publicada.</p>
-          </section>
-        )}
-      </div>
-    </main>
-  );
+  useEffect(() => { getPublishedPost(slug).then(setPost).catch(() => setPost(null)).finally(() => setIsLoading(false)); }, [slug]);
+  if (isLoading) return <main className="min-h-screen bg-background"><div className="section-container animate-pulse py-10"><div className="h-10 w-36 rounded bg-muted" /><div className="mx-auto mt-16 h-12 max-w-3xl rounded bg-muted" /><div className="mx-auto mt-8 aspect-[16/7] max-w-5xl rounded-3xl bg-muted" /></div></main>;
+  if (!post) return <main className="grid min-h-screen place-items-center bg-background p-6"><div className="text-center"><h1 className="text-3xl font-black">Publicación no encontrada</h1><p className="mt-3 text-muted-foreground">La publicación no existe o todavía no fue publicada.</p><Link href="/blog" className="mt-6 inline-flex h-11 items-center rounded-xl bg-primary px-5 font-bold text-primary-foreground"><ArrowLeft className="mr-2 h-4 w-4" />Volver al blog</Link></div></main>;
+  const readingMinutes = Math.max(1, Math.ceil(post.content.trim().split(/\s+/).length / 200));
+  return <main className="min-h-screen bg-background"><header className="border-b border-border bg-card/80 backdrop-blur"><div className="section-container flex min-h-20 items-center"><Link href="/blog" className="inline-flex items-center text-sm font-bold text-muted-foreground hover:text-secondary"><ArrowLeft className="mr-2 h-4 w-4" />Volver al blog</Link></div></header><article><div className="section-container py-14 text-center lg:py-20"><span className="text-xs font-black uppercase tracking-[0.2em] text-secondary">{post.category?.name ?? "DyxerSoft Blog"}</span><h1 className="mx-auto mt-4 max-w-4xl text-4xl font-black leading-tight tracking-tight md:text-6xl">{post.title}</h1>{post.excerpt ? <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground md:text-xl">{post.excerpt}</p> : null}<div className="mt-7 flex flex-wrap items-center justify-center gap-5 text-sm font-semibold text-muted-foreground"><span className="inline-flex items-center"><UserRound className="mr-2 h-4 w-4 text-secondary" />{post.author.firstName} {post.author.lastName}</span><span className="inline-flex items-center"><CalendarDays className="mr-2 h-4 w-4 text-secondary" />{new Intl.DateTimeFormat("es-BO", { day: "numeric", month: "long", year: "numeric" }).format(new Date(post.publishedAt ?? post.createdAt))}</span><span className="inline-flex items-center"><Clock3 className="mr-2 h-4 w-4 text-secondary" />{readingMinutes} min de lectura</span></div>{post.tags.length ? <div className="mt-6 flex flex-wrap justify-center gap-2">{post.tags.map((tag) => <span key={tag.id} className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-bold text-secondary">#{tag.name}</span>)}</div> : null}</div>{post.coverImageUrl ? <div className="section-container"><img src={post.coverImageUrl} alt={`Portada de ${post.title}`} className="max-h-[560px] w-full rounded-3xl border border-border object-cover shadow-xl" /></div> : null}<div className="section-container py-14 lg:py-20"><div className="mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-sm md:p-10"><div className="whitespace-pre-wrap text-[17px] leading-8 text-foreground [&_p]:mb-6">{post.content}</div></div><div className="mx-auto mt-10 flex max-w-3xl justify-center border-t border-border pt-8"><Link href="/blog" className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-5 text-sm font-black hover:bg-muted"><ArrowLeft className="mr-2 h-4 w-4" />Ver más publicaciones</Link></div></div></article></main>;
 }
