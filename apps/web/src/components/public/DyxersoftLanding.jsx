@@ -308,7 +308,7 @@ function DyxersoftLanding() {
             </h2>
             <p className="mt-4 text-lg text-blue-100/80">Cuéntanos cómo gestionas hoy tus incidencias y te mostraremos un flujo aplicable a tu equipo.</p>
           </div>
-          <Button size="lg" asChild className="h-12 shrink-0 bg-white px-6 text-primary hover:bg-blue-50">
+          <Button size="lg" asChild className="h-12 shrink-0 bg-secondary px-6 text-secondary-foreground shadow-lg shadow-cyan-950/20 hover:bg-secondary/90">
             <a href="#contacto">Agendar una demostración <ArrowRight className="ml-2 h-5 w-5" /></a>
           </Button>
         </motion.div>

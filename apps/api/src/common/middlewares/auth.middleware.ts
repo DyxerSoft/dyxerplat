@@ -3,6 +3,7 @@ import type { RequestHandler } from "express";
 import { env } from "../../config/env";
 import { prisma } from "../../database/prisma";
 import { AppError } from "../errors/AppError";
+import { getEffectivePermissions } from "../auth/effective-permissions";
 
 type JwtSessionPayload = {
   sub: string;
@@ -63,14 +64,8 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
     req.auth = {
       userId: user.id,
       email: user.email,
-      roles: user.userRoles.map((userRole) => userRole.role.code),
-      permissions: Array.from(
-        new Set(
-          user.userRoles.flatMap((userRole) =>
-            userRole.role.permissions.map((rolePermission) => rolePermission.permission.code)
-          )
-        )
-      )
+      roles: user.userRoles.filter(({ role }) => !role.isDeleted).map(({ role }) => role.code),
+      permissions: await getEffectivePermissions(user.userRoles)
     };
 
     next();

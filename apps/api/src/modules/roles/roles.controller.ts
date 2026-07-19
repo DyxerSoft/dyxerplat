@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { AppError } from "../../common/errors/AppError";
 import { sendSuccess } from "../../common/responses/api-response";
 import { createRole, deleteRole, listPermissions, listRoles, updateRole } from "./roles.service";
+import type { ListRolesInput } from "./roles.schemas";
 
 function getActorId(req: Request) {
   if (!req.auth?.userId) {
@@ -11,8 +12,8 @@ function getActorId(req: Request) {
   return req.auth.userId;
 }
 
-export async function listRolesController(_req: Request, res: Response) {
-  return sendSuccess(res, "Roles obtenidos correctamente.", await listRoles());
+export async function listRolesController(req: Request, res: Response) {
+  return sendSuccess(res, "Roles obtenidos correctamente.", await listRoles(req.query as unknown as ListRolesInput));
 }
 
 export async function listPermissionsController(_req: Request, res: Response) {

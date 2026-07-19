@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const listRolesSchema = z.object({
+  query: z.object({
+    q: z.string().optional(),
+    type: z.enum(["SYSTEM", "CUSTOM"]).optional(),
+    page: z.coerce.number().int().positive().default(1),
+    pageSize: z.coerce.number().int().positive().max(100).default(10)
+  })
+});
+
 export const roleParamsSchema = z.object({
   params: z.object({
     roleId: z.string().uuid("El identificador del rol no es valido.")
@@ -21,3 +30,4 @@ export const updateRoleSchema = roleParamsSchema.extend({
 
 export type CreateRoleInput = z.infer<typeof createRoleSchema>["body"];
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>["body"];
+export type ListRolesInput = z.infer<typeof listRolesSchema>["query"];

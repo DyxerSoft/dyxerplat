@@ -4,6 +4,7 @@ import type { SignOptions } from "jsonwebtoken";
 import { env } from "../../config/env";
 import { prisma } from "../../database/prisma";
 import { AppError } from "../../common/errors/AppError";
+import { getEffectivePermissions } from "../../common/auth/effective-permissions";
 import type { LoginInput } from "./auth.schemas";
 
 export async function login(input: LoginInput) {
@@ -43,14 +44,8 @@ export async function login(input: LoginInput) {
     throw new AppError("Correo o contrasena incorrectos.", 401, "INVALID_CREDENTIALS");
   }
 
-  const roles = user.userRoles.map((userRole) => userRole.role.code);
-  const permissions = Array.from(
-    new Set(
-      user.userRoles.flatMap((userRole) =>
-        userRole.role.permissions.map((rolePermission) => rolePermission.permission.code)
-      )
-    )
-  );
+  const roles = user.userRoles.filter(({ role }) => !role.isDeleted).map(({ role }) => role.code);
+  const permissions = await getEffectivePermissions(user.userRoles);
 
   const signOptions: SignOptions = {
     expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"]
@@ -122,13 +117,7 @@ export async function getCurrentUser(userId: string) {
     firstName: user.firstName,
     lastName: user.lastName,
     mustChangePassword: user.mustChangePassword,
-    roles: user.userRoles.map((userRole) => userRole.role.code),
-    permissions: Array.from(
-      new Set(
-        user.userRoles.flatMap((userRole) =>
-          userRole.role.permissions.map((rolePermission) => rolePermission.permission.code)
-        )
-      )
-    )
+    roles: user.userRoles.filter(({ role }) => !role.isDeleted).map(({ role }) => role.code),
+    permissions: await getEffectivePermissions(user.userRoles)
   };
 }

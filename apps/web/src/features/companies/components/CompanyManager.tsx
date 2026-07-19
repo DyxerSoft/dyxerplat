@@ -4,8 +4,9 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Building2, Edit, Plus, Search, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { PERMISSIONS } from "@/lib/permissions";
-import { ApiClientError } from "@/lib/api-client";
+import { getUserFacingErrorMessage } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   createCompany,
   createContact,
@@ -42,7 +43,7 @@ const emptyContactForm: ContactFormValues = {
 };
 
 function getErrorMessage(error: unknown) {
-  return error instanceof ApiClientError ? error.message : "No se pudo completar la accion.";
+  return getUserFacingErrorMessage(error);
 }
 
 export function CompanyManager() {
@@ -59,6 +60,9 @@ export function CompanyManager() {
   const [contacts, setContacts] = useState<CompanyContact[]>([]);
   const [editingContact, setEditingContact] = useState<CompanyContact | null>(null);
   const [contactForm, setContactForm] = useState<ContactFormValues>(emptyContactForm);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<CompanyContact | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const permissions = useMemo(() => {
     if (typeof window === "undefined") {
@@ -138,16 +142,21 @@ export function CompanyManager() {
   };
 
   const handleDeleteCompany = async (company: Company) => {
-    if (!window.confirm(`Eliminar la compania ${company.name}? Esta accion sera logica.`)) {
-      return;
-    }
+    setCompanyToDelete(company);
+  };
 
+  const confirmDeleteCompany = async () => {
+    if (!companyToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteCompany(company.id);
+      await deleteCompany(companyToDelete.id);
       toast.success("Compania eliminada correctamente.");
+      setCompanyToDelete(null);
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -212,17 +221,23 @@ export function CompanyManager() {
   };
 
   const handleDeleteContact = async (contact: CompanyContact) => {
-    if (!contactsCompany || !window.confirm(`Eliminar el contacto ${contact.firstName} ${contact.lastName}?`)) {
-      return;
-    }
+    if (!contactsCompany) return;
+    setContactToDelete(contact);
+  };
 
+  const confirmDeleteContact = async () => {
+    if (!contactsCompany || !contactToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteContact(contactsCompany.id, contact.id);
+      await deleteContact(contactsCompany.id, contactToDelete.id);
       toast.success("Contacto eliminado correctamente.");
+      setContactToDelete(null);
       await refreshContacts();
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -471,6 +486,26 @@ export function CompanyManager() {
           </div>
         </Modal>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(companyToDelete)}
+        title="Eliminar compañía"
+        description={`¿Deseas eliminar “${companyToDelete?.name ?? ""}”? La compañía y su información dejarán de aparecer en la gestión operativa.`}
+        confirmLabel="Eliminar compañía"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDeleteCompany()}
+        onCancel={() => setCompanyToDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(contactToDelete)}
+        title="Eliminar contacto"
+        description={`¿Deseas eliminar a “${contactToDelete?.firstName ?? ""} ${contactToDelete?.lastName ?? ""}” de esta compañía?`}
+        confirmLabel="Eliminar contacto"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDeleteContact()}
+        onCancel={() => setContactToDelete(null)}
+      />
     </div>
   );
 }

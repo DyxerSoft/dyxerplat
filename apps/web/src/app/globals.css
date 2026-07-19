@@ -149,7 +149,7 @@
     line-height: 1.8;
     color: hsl(var(--muted-foreground));
   }
-  
+
   @media (min-width: 640px) {
     .section-container {
       padding-left: 1.5rem;

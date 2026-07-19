@@ -2,6 +2,7 @@ import argon2 from "argon2";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../../database/prisma";
 import { AppError } from "../../common/errors/AppError";
+import { ROLE_CODES } from "../../common/constants/roles";
 import type { CreateUserInput, ListUsersInput, UpdateUserInput } from "./users.schemas";
 
 function cleanOptional(value: string | null | undefined) {
@@ -38,6 +39,12 @@ function toUserResponse(
 export async function listUsers(input: ListUsersInput) {
   const where: Prisma.UserWhereInput = {
     isDeleted: false,
+    userRoles: {
+      none: {
+        role: { code: ROLE_CODES.SUPER_ADMIN }
+      },
+      ...(input.roleId ? { some: { roleId: input.roleId } } : {})
+    },
     ...(input.status ? { status: input.status } : {}),
     ...(input.q
       ? {
@@ -76,9 +83,9 @@ export async function listUsers(input: ListUsersInput) {
 
 export async function createUser(input: CreateUserInput, actorId: string) {
   const email = input.email.toLowerCase().trim();
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findFirst({ where: { email, isDeleted: false } });
 
-  if (existing && !existing.isDeleted) {
+  if (existing) {
     throw new AppError("Ya existe un usuario con ese correo.", 409, "USER_ALREADY_EXISTS");
   }
 
@@ -107,10 +114,15 @@ export async function createUser(input: CreateUserInput, actorId: string) {
 }
 
 export async function updateUser(userId: string, input: UpdateUserInput, actorId: string) {
-  const existing = await prisma.user.findFirst({ where: { id: userId, isDeleted: false } });
+  const existing = await prisma.user.findFirst({
+    where: { id: userId, isDeleted: false },
+    include: { userRoles: { include: { role: true } } }
+  });
   if (!existing) {
     throw new AppError("El usuario no existe o fue eliminado.", 404, "USER_NOT_FOUND");
   }
+
+  assertUserIsManageable(existing.userRoles.map(({ role }) => role.code));
 
   if (input.email) {
     const nextEmail = input.email.toLowerCase().trim();
@@ -159,10 +171,15 @@ export async function deleteUser(userId: string, actorId: string) {
     throw new AppError("No puedes eliminar tu propio usuario.", 409, "CANNOT_DELETE_SELF");
   }
 
-  const existing = await prisma.user.findFirst({ where: { id: userId, isDeleted: false } });
+  const existing = await prisma.user.findFirst({
+    where: { id: userId, isDeleted: false },
+    include: { userRoles: { include: { role: true } } }
+  });
   if (!existing) {
     throw new AppError("El usuario no existe o ya fue eliminado.", 404, "USER_NOT_FOUND");
   }
+
+  assertUserIsManageable(existing.userRoles.map(({ role }) => role.code));
 
   await prisma.user.update({
     where: { id: userId },
@@ -185,5 +202,15 @@ async function validateRoles(roleIds: string[]) {
     throw new AppError("Uno o mas roles seleccionados no son validos.", 422, "INVALID_ROLES");
   }
 
+  if (roles.some((role) => role.code === ROLE_CODES.SUPER_ADMIN)) {
+    throw new AppError("El rol Super Admin es exclusivo del usuario principal.", 403, "SUPER_ADMIN_ROLE_PROTECTED");
+  }
+
   return roles;
+}
+
+function assertUserIsManageable(roleCodes: string[]) {
+  if (roleCodes.includes(ROLE_CODES.SUPER_ADMIN)) {
+    throw new AppError("El usuario Super Admin esta protegido y no puede modificarse.", 403, "SUPER_ADMIN_PROTECTED");
+  }
 }

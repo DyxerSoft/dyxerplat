@@ -4,8 +4,9 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { Edit, FileText, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PERMISSIONS } from "@/lib/permissions";
-import { ApiClientError } from "@/lib/api-client";
+import { getUserFacingErrorMessage } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { createPost, deletePost, listPosts, updatePost } from "../services/post-service";
 import type { Post, PostFormValues, PostStatus } from "../types/post.types";
 
@@ -18,7 +19,7 @@ const emptyForm: PostFormValues = {
 };
 
 function getErrorMessage(error: unknown) {
-  return error instanceof ApiClientError ? error.message : "No se pudo completar la accion.";
+  return getUserFacingErrorMessage(error);
 }
 
 async function fileToBase64(file: File) {
@@ -40,6 +41,8 @@ export function PostManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostFormValues>(emptyForm);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const permissions = useMemo(() => {
     if (typeof window === "undefined") {
@@ -126,16 +129,21 @@ export function PostManager() {
   };
 
   const handleDelete = async (post: Post) => {
-    if (!window.confirm(`Eliminar la publicacion "${post.title}"? Esta accion sera logica.`)) {
-      return;
-    }
+    setPostToDelete(post);
+  };
 
+  const confirmDelete = async () => {
+    if (!postToDelete) return;
+    setIsDeleting(true);
     try {
-      await deletePost(post.id);
+      await deletePost(postToDelete.id);
       toast.success("Publicacion eliminada correctamente.");
+      setPostToDelete(null);
       await loadPosts();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -257,6 +265,16 @@ export function PostManager() {
           </section>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(postToDelete)}
+        title="Eliminar publicación"
+        description={`¿Deseas eliminar “${postToDelete?.title ?? ""}”? Dejará de mostrarse en la administración y en el blog público.`}
+        confirmLabel="Eliminar publicación"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setPostToDelete(null)}
+      />
     </div>
   );
 }

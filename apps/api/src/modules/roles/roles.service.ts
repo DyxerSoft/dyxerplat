@@ -1,6 +1,7 @@
 import { prisma } from "../../database/prisma";
 import { AppError } from "../../common/errors/AppError";
-import type { CreateRoleInput, UpdateRoleInput } from "./roles.schemas";
+import { ROLE_CODES } from "../../common/constants/roles";
+import type { CreateRoleInput, ListRolesInput, UpdateRoleInput } from "./roles.schemas";
 
 function normalizeCode(code: string) {
   return code.trim().toUpperCase().replace(/[^A-Z0-9_]+/g, "_");
@@ -31,21 +32,43 @@ function toRoleResponse(role: {
   };
 }
 
-export async function listRoles() {
-  const roles = await prisma.role.findMany({
-    where: { isDeleted: false },
-    include: {
-      permissions: {
-        include: { permission: true }
+export async function listRoles(input: ListRolesInput) {
+  const where = {
+    isDeleted: false,
+    code: { not: ROLE_CODES.SUPER_ADMIN },
+    ...(input.type ? { isSystem: input.type === "SYSTEM" } : {}),
+    ...(input.q ? {
+      OR: [
+        { name: { contains: input.q, mode: "insensitive" as const } },
+        { code: { contains: input.q, mode: "insensitive" as const } },
+        { description: { contains: input.q, mode: "insensitive" as const } }
+      ]
+    } : {})
+  };
+  const skip = (input.page - 1) * input.pageSize;
+  const [roles, total] = await Promise.all([
+    prisma.role.findMany({
+      where,
+      include: {
+        permissions: { include: { permission: true } },
+        _count: { select: { users: true } }
       },
-      _count: {
-        select: { users: true }
-      }
-    },
-    orderBy: [{ isSystem: "desc" }, { name: "asc" }]
-  });
+      orderBy: [{ isSystem: "desc" }, { name: "asc" }],
+      skip,
+      take: input.pageSize
+    }),
+    prisma.role.count({ where })
+  ]);
 
-  return roles.map(toRoleResponse);
+  return {
+    items: roles.map(toRoleResponse),
+    pagination: {
+      page: input.page,
+      pageSize: input.pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / input.pageSize))
+    }
+  };
 }
 
 export async function listPermissions() {
@@ -56,12 +79,10 @@ export async function listPermissions() {
 
 export async function createRole(input: CreateRoleInput, actorId: string) {
   const code = normalizeCode(input.code);
-  const existing = await prisma.role.findFirst({
-    where: { code, isDeleted: false }
-  });
+  const existing = await prisma.role.findFirst({ where: { code, isDeleted: false } });
 
   if (existing) {
-    throw new AppError("Ya existe un rol con ese codigo.", 409, "ROLE_ALREADY_EXISTS");
+    throw new AppError(`Ya existe un rol activo con el código «${code}». Usa otro código o edita el rol existente.`, 409, "ROLE_ALREADY_EXISTS");
   }
 
   const permissions = await validatePermissions(input.permissionCodes);
@@ -101,6 +122,10 @@ export async function updateRole(roleId: string, input: UpdateRoleInput, actorId
     throw new AppError("El rol no existe o fue eliminado.", 404, "ROLE_NOT_FOUND");
   }
 
+  if (existing.code === ROLE_CODES.SUPER_ADMIN) {
+    throw new AppError("El rol Super Admin esta protegido y no puede modificarse.", 403, "SUPER_ADMIN_ROLE_PROTECTED");
+  }
+
   if (existing.isSystem && input.code && normalizeCode(input.code) !== existing.code) {
     throw new AppError("No se puede cambiar el codigo de un rol del sistema.", 409, "SYSTEM_ROLE_CODE_LOCKED");
   }
@@ -108,15 +133,11 @@ export async function updateRole(roleId: string, input: UpdateRoleInput, actorId
   const nextCode = input.code ? normalizeCode(input.code) : existing.code;
   if (nextCode !== existing.code) {
     const duplicated = await prisma.role.findFirst({
-      where: {
-        code: nextCode,
-        isDeleted: false,
-        id: { not: roleId }
-      }
+      where: { code: nextCode, isDeleted: false, id: { not: roleId } }
     });
 
     if (duplicated) {
-      throw new AppError("Ya existe un rol con ese codigo.", 409, "ROLE_ALREADY_EXISTS");
+      throw new AppError(`El código «${nextCode}» ya pertenece a un rol activo. Usa otro código.`, 409, "ROLE_ALREADY_EXISTS");
     }
   }
 
@@ -170,7 +191,13 @@ export async function deleteRole(roleId: string, actorId: string) {
   }
 
   if (existing._count.users > 0) {
-    throw new AppError("No se puede eliminar un rol asignado a usuarios.", 409, "ROLE_HAS_USERS");
+    const total = existing._count.users;
+    throw new AppError(
+      `No se puede eliminar este rol porque está asignado a ${total} ${total === 1 ? "usuario" : "usuarios"}. Reasigna ${total === 1 ? "ese usuario" : "esos usuarios"} a otro rol e inténtalo nuevamente.`,
+      409,
+      "ROLE_HAS_USERS",
+      { assignedUsers: total }
+    );
   }
 
   await prisma.role.update({

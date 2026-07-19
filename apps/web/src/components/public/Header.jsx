@@ -80,6 +80,9 @@ function Header() {
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
+          <Button variant="ghost" asChild>
+            <a href="/login">Iniciar sesión</a>
+          </Button>
           <Button asChild>
             <a href="#contacto">
               Solicitar demo <ArrowRight className="ml-2 h-4 w-4" />
@@ -104,6 +107,9 @@ function Header() {
               >
                 {isDark ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
                 {isDark ? 'Tema claro' : 'Tema oscuro'}
+              </Button>
+              <Button variant="outline" asChild className="mt-2">
+                <a href="/login" onClick={() => setIsOpen(false)}>Iniciar sesión</a>
               </Button>
               <Button asChild className="mt-4">
                 <a href="#contacto" onClick={() => setIsOpen(false)}>Solicitar demo</a>

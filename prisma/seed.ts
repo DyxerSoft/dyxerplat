@@ -25,50 +25,54 @@ async function main() {
     )
   );
 
-  const superAdminRole = await prisma.role.upsert({
-    where: { code: ROLE_CODES.SUPER_ADMIN },
-    update: {
-      name: "Super Admin",
-      description: "Acceso completo a la plataforma.",
-      isSystem: true
-    },
-    create: {
+  const existingSuperAdminRole = await prisma.role.findFirst({ where: { code: ROLE_CODES.SUPER_ADMIN, isDeleted: false } });
+  const superAdminRole = existingSuperAdminRole
+    ? await prisma.role.update({
+        where: { id: existingSuperAdminRole.id },
+        data: {
+          name: "Super Admin",
+          description: "Acceso completo a la plataforma.",
+          isSystem: true
+        }
+      })
+    : await prisma.role.create({ data: {
       name: "Super Admin",
       code: ROLE_CODES.SUPER_ADMIN,
       description: "Acceso completo a la plataforma.",
       isSystem: true
-    }
-  });
+    } });
 
-  await prisma.role.upsert({
-    where: { code: ROLE_CODES.ADMIN },
-    update: {
+  const existingAdminRole = await prisma.role.findFirst({ where: { code: ROLE_CODES.ADMIN, isDeleted: false } });
+  if (existingAdminRole) {
+    await prisma.role.update({ where: { id: existingAdminRole.id }, data: {
       name: "Admin",
       description: "Administracion operativa de la plataforma.",
       isSystem: true
-    },
-    create: {
+    } });
+  } else {
+    await prisma.role.create({ data: {
       name: "Admin",
       code: ROLE_CODES.ADMIN,
       description: "Administracion operativa de la plataforma.",
       isSystem: true
-    }
-  });
+    } });
+  }
 
-  await prisma.role.upsert({
-    where: { code: ROLE_CODES.USER },
-    update: {
+  const existingUserRole = await prisma.role.findFirst({ where: { code: ROLE_CODES.USER, isDeleted: false } });
+  if (existingUserRole) {
+    await prisma.role.update({ where: { id: existingUserRole.id }, data: {
       name: "Usuario",
       description: "Usuario operativo con permisos limitados.",
       isSystem: true
-    },
-    create: {
+    } });
+  } else {
+    await prisma.role.create({ data: {
       name: "Usuario",
       code: ROLE_CODES.USER,
       description: "Usuario operativo con permisos limitados.",
       isSystem: true
-    }
-  });
+    } });
+  }
 
   await Promise.all(
     permissions.map((permission) =>
@@ -91,20 +95,20 @@ async function main() {
   const superAdminEmail = process.env.SUPER_ADMIN_EMAIL ?? "admin@dyxerplat.local";
   const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD ?? "Cambiar123!";
 
-  const superAdmin = await prisma.user.upsert({
-    where: { email: superAdminEmail.toLowerCase() },
-    update: {
+  const normalizedSuperAdminEmail = superAdminEmail.toLowerCase();
+  const existingSuperAdmin = await prisma.user.findFirst({ where: { email: normalizedSuperAdminEmail, isDeleted: false } });
+  const superAdmin = existingSuperAdmin
+    ? await prisma.user.update({ where: { id: existingSuperAdmin.id }, data: {
       firstName: process.env.SUPER_ADMIN_FIRST_NAME ?? "Super",
       lastName: process.env.SUPER_ADMIN_LAST_NAME ?? "Admin"
-    },
-    create: {
-      email: superAdminEmail.toLowerCase(),
+    } })
+    : await prisma.user.create({ data: {
+      email: normalizedSuperAdminEmail,
       passwordHash: await argon2.hash(superAdminPassword),
       firstName: process.env.SUPER_ADMIN_FIRST_NAME ?? "Super",
       lastName: process.env.SUPER_ADMIN_LAST_NAME ?? "Admin",
       mustChangePassword: true
-    }
-  });
+    } });
 
   await prisma.userRole.upsert({
     where: {
