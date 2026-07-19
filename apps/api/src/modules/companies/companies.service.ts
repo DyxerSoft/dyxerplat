@@ -60,7 +60,7 @@ export async function listCompanies(input: ListCompaniesInput) {
       include: {
         _count: {
           select: {
-            contacts: true
+            contacts: { where: { isDeleted: false } }
           }
         }
       },
@@ -82,6 +82,15 @@ export async function listCompanies(input: ListCompaniesInput) {
   };
 }
 
+export async function getCompany(companyId: string) {
+  const company = await prisma.company.findFirst({
+    where: { id: companyId, isDeleted: false },
+    include: { _count: { select: { contacts: { where: { isDeleted: false } } } } }
+  });
+  if (!company) throw new AppError("La compañía no existe o fue eliminada.", 404, "COMPANY_NOT_FOUND");
+  return toCompanyResponse(company);
+}
+
 export async function createCompany(input: CreateCompanyInput, actorId: string) {
   const company = await prisma.company.create({
     data: {
@@ -100,7 +109,7 @@ export async function createCompany(input: CreateCompanyInput, actorId: string) 
     include: {
       _count: {
         select: {
-          contacts: true
+          contacts: { where: { isDeleted: false } }
         }
       }
     }
@@ -138,7 +147,7 @@ export async function updateCompany(companyId: string, input: UpdateCompanyInput
     include: {
       _count: {
         select: {
-          contacts: true
+          contacts: { where: { isDeleted: false } }
         }
       }
     }
@@ -204,12 +213,13 @@ export async function listCompanyContacts(companyId: string, input: ListContacts
       : {})
   };
 
-  const contacts = await prisma.companyContact.findMany({
-    where,
-    orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }]
-  });
+  const skip = (input.page - 1) * input.pageSize;
+  const [contacts, total] = await Promise.all([
+    prisma.companyContact.findMany({ where, orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }], skip, take: input.pageSize }),
+    prisma.companyContact.count({ where })
+  ]);
 
-  return contacts.map((contact) => ({
+  const items = contacts.map((contact) => ({
     id: contact.id,
     companyId: contact.companyId,
     firstName: contact.firstName,
@@ -223,6 +233,7 @@ export async function listCompanyContacts(companyId: string, input: ListContacts
     createdAt: contact.createdAt,
     updatedAt: contact.updatedAt
   }));
+  return { items, pagination: { page: input.page, pageSize: input.pageSize, total, totalPages: Math.max(1, Math.ceil(total / input.pageSize)) } };
 }
 
 export async function createCompanyContact(companyId: string, input: CreateContactInput, actorId: string) {

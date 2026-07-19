@@ -63,3 +63,8 @@ export type PaginatedCompanies = {
     totalPages: number;
   };
 };
+
+export type PaginatedContacts = {
+  items: CompanyContact[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+};

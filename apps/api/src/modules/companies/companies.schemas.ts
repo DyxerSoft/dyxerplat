@@ -39,7 +39,9 @@ export const listContactsSchema = z.object({
   params: companyParamsSchema.shape.params,
   query: z.object({
     q: z.string().optional(),
-    status: statusSchema.optional()
+    status: statusSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    pageSize: z.coerce.number().int().positive().max(100).default(10)
   })
 });
 
@@ -53,10 +55,10 @@ export const contactParamsSchema = z.object({
 export const createContactSchema = z.object({
   params: companyParamsSchema.shape.params,
   body: z.object({
-    firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
-    lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres."),
+    firstName: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres.").regex(/^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u, "El nombre solo puede contener letras."),
+    lastName: z.string().trim().min(2, "El apellido debe tener al menos 2 caracteres.").regex(/^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u, "El apellido solo puede contener letras."),
     email: z.string().email("El correo no es valido.").optional().or(z.literal("")).nullable(),
-    phone: z.string().optional().nullable(),
+    phone: z.string().regex(/^\+?\d{7,15}$/, "El teléfono debe contener entre 7 y 15 dígitos.").optional().or(z.literal("")).nullable(),
     position: z.string().optional().nullable(),
     isPrimary: z.boolean().default(false),
     status: statusSchema.default("ACTIVE"),

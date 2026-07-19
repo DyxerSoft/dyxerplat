@@ -9,6 +9,7 @@ import {
   createCompanyContactController,
   deleteCompanyController,
   deleteCompanyContactController,
+  getCompanyController,
   listCompaniesController,
   listCompanyContactsController,
   updateCompanyController,
@@ -41,6 +42,13 @@ companiesRoutes.post(
   requirePermission(PERMISSIONS.COMPANIES_CREATE),
   validateRequest(createCompanySchema),
   asyncHandler(createCompanyController)
+);
+
+companiesRoutes.get(
+  "/:companyId",
+  requirePermission(PERMISSIONS.COMPANIES_READ),
+  validateRequest(companyParamsSchema),
+  asyncHandler(getCompanyController)
 );
 
 companiesRoutes.put(

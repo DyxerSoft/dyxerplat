@@ -9,6 +9,7 @@ import type {
   CompanyStatus,
   ContactFormValues,
   PaginatedCompanies
+  , PaginatedContacts
 } from "../types/company.types";
 
 function getToken() {
@@ -48,6 +49,10 @@ export function createCompany(values: CompanyFormValues) {
   });
 }
 
+export function getCompany(companyId: string) {
+  return apiRequest<Company>(`/companies/${companyId}`, { token: getToken() });
+}
+
 export function updateCompany(companyId: string, values: CompanyFormValues) {
   return apiRequest<Company>(`/companies/${companyId}`, {
     method: "PUT",
@@ -63,8 +68,8 @@ export function deleteCompany(companyId: string) {
   });
 }
 
-export function listContacts(companyId: string, params: { q?: string; status?: CompanyStatus | "" } = {}) {
-  return apiRequest<CompanyContact[]>(`/companies/${companyId}/contacts${queryString(params)}`, {
+export function listContacts(companyId: string, params: { q?: string; status?: CompanyStatus | ""; page?: number; pageSize?: number } = {}) {
+  return apiRequest<PaginatedContacts>(`/companies/${companyId}/contacts${queryString(params)}`, {
     token: getToken()
   });
 }

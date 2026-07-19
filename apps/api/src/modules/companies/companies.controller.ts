@@ -6,6 +6,7 @@ import {
   createCompanyContact,
   deleteCompany,
   deleteCompanyContact,
+  getCompany,
   listCompanies,
   listCompanyContacts,
   updateCompany,
@@ -28,6 +29,10 @@ export async function listCompaniesController(req: Request, res: Response) {
 export async function createCompanyController(req: Request, res: Response) {
   const result = await createCompany(req.body, getActorId(req));
   return sendSuccess(res, "Compania creada correctamente.", result, 201);
+}
+
+export async function getCompanyController(req: Request, res: Response) {
+  return sendSuccess(res, "Compañía obtenida correctamente.", await getCompany(req.params.companyId));
 }
 
 export async function updateCompanyController(req: Request, res: Response) {

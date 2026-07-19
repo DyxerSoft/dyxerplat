@@ -115,6 +115,42 @@
   }
 }
 
+button[role="switch"][aria-label="Marcar como contacto principal"] {
+  position: relative;
+  display: inline-flex;
+  width: 3rem;
+  min-width: 3rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid #334155;
+  border-radius: 9999px;
+  background: #1e293b;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+button[role="switch"][aria-label="Marcar como contacto principal"] > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 35%);
+  transform: translateX(0);
+  transition: transform 160ms ease;
+}
+
+button[role="switch"][aria-label="Marcar como contacto principal"][aria-checked="true"] {
+  border-color: #06b6d4;
+  background: #06b6d4;
+}
+
+button[role="switch"][aria-label="Marcar como contacto principal"][aria-checked="true"] > span {
+  transform: translateX(20px);
+}
+
 @layer components {
   .section-container {
     max-width: 1280px;
