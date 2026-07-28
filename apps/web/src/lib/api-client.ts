@@ -25,7 +25,9 @@ export function getUserFacingErrorMessage(error: unknown, fallback = "No se pudo
   return fallback;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (process.env.NODE_ENV === "production" ? "/api/v1" : "http://localhost:4000/api/v1");
 
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

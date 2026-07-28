@@ -17,8 +17,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mlgywkel';
+import { submitInquiry } from '@/features/inquiries/inquiry-service';
 
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -58,35 +57,15 @@ function ContactForm() {
     setIsSubmitting(true);
 
     try {
-      const timestamp = new Date().toISOString();
       const serviceLabel = serviceLabels[data.servicio] || data.servicio;
-      const payload = {
-        nombre: data.nombre,
-        empresa: data.empresa,
-        correo: data.correo,
+      await submitInquiry({
+        name: data.nombre,
+        company: data.empresa,
         email: data.correo,
-        telefono: data.telefono || 'No indicado',
-        servicio: serviceLabel,
-        mensaje: data.mensaje,
-        enviado_en: timestamp,
-        _subject: `Nuevo contacto Dyxersoft: ${data.empresa}`,
-        _replyto: data.correo,
-      };
-
-      localStorage.setItem(`dyxersoft_contact_${Date.now()}`, JSON.stringify(payload));
-
-      const response = await fetch(FORMSPREE_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        phone: data.telefono || '',
+        service: serviceLabel,
+        message: data.mensaje,
       });
-
-      if (!response.ok) {
-        throw new Error('Formspree request failed');
-      }
 
       toast.success('Tu mensaje fue enviado correctamente. Te contactaremos pronto.');
       reset();

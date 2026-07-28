@@ -27,7 +27,10 @@ export const PERMISSIONS = {
   TAGS_CREATE: "tags:create",
   TAGS_READ: "tags:read",
   TAGS_UPDATE: "tags:update",
-  TAGS_DELETE: "tags:delete"
+  TAGS_DELETE: "tags:delete",
+  INQUIRIES_READ: "inquiries:read",
+  INQUIRIES_UPDATE: "inquiries:update",
+  INQUIRIES_DELETE: "inquiries:delete"
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

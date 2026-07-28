@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareText,
   Newspaper,
   PanelLeftClose,
   PanelLeftOpen,
@@ -22,6 +23,7 @@ const SIDEBAR_STORAGE_KEY = "dyxerplat_sidebar_collapsed";
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/companies", label: "Compañías", icon: Building2 },
+  { href: "/inquiries", label: "Solicitudes web", icon: MessageSquareText },
   { href: "/posts", label: "Publicaciones", icon: Newspaper },
   { href: "/users", label: "Usuarios", icon: Users },
   { href: "/roles", label: "Roles", icon: Shield }

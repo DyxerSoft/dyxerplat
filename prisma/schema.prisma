@@ -24,6 +24,14 @@ enum PostStatus {
   ARCHIVED
 }
 
+enum ContactInquiryStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  CONVERTED
+  CLOSED
+}
+
 model User {
   id                 String     @id @default(uuid()) @db.Uuid
   email              String
@@ -239,4 +247,26 @@ model PostTagRelation {
 
   @@id([postId, tagId])
   @@map("post_tag_relations")
+}
+
+model ContactInquiry {
+  id          String               @id @default(uuid()) @db.Uuid
+  name        String
+  company     String
+  email       String
+  phone       String?
+  service     String
+  message     String
+  status      ContactInquiryStatus @default(NEW)
+  notes       String?
+  contactedAt DateTime?            @map("contacted_at")
+  isDeleted   Boolean              @default(false) @map("is_deleted")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  updatedById String?              @map("updated_by_id") @db.Uuid
+  deletedAt   DateTime?            @map("deleted_at")
+  deletedById String?              @map("deleted_by_id") @db.Uuid
+
+  @@index([status, createdAt])
+  @@map("contact_inquiries")
 }
