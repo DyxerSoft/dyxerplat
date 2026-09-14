@@ -37,7 +37,7 @@ export function createPost(values: PostFormValues) {
   return apiRequest<Post>("/posts", {
     method: "POST",
     token: getToken(),
-    body: values
+    body: sanitizePost(values)
   });
 }
 
@@ -45,8 +45,19 @@ export function updatePost(postId: string, values: PostFormValues) {
   return apiRequest<Post>(`/posts/${postId}`, {
     method: "PUT",
     token: getToken(),
-    body: values
+    body: sanitizePost(values)
   });
+}
+
+function sanitizePost(values: PostFormValues) {
+  return {
+    ...values,
+    title: values.title.trim(),
+    excerpt: values.excerpt.trim() || null,
+    content: values.content.trim(),
+    categoryId: values.categoryId || null,
+    coverImage: values.coverImage ?? null
+  };
 }
 
 export function deletePost(postId: string) {

@@ -16,7 +16,10 @@ export const PERMISSIONS = {
   POSTS_READ: "posts:read",
   POSTS_UPDATE: "posts:update",
   POSTS_DELETE: "posts:delete",
-  POSTS_PUBLISH: "posts:publish"
+  POSTS_PUBLISH: "posts:publish",
+  LEADS_READ: "leads:read",
+  LEADS_UPDATE: "leads:update",
+  LEADS_DELETE: "leads:delete"
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

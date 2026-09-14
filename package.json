@@ -8,11 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n api,web -c cyan,blue \"yarn workspace @dyxerplat/api dev\" \"yarn workspace @dyxerplat/web dev\"",
-    "dev:api": "yarn workspace @dyxerplat/api dev",
+    "dev": "yarn workspace @dyxerplat/web dev",
     "dev:web": "yarn workspace @dyxerplat/web dev",
     "build": "yarn workspaces run build",
     "typecheck": "yarn workspaces run typecheck",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
@@ -20,9 +20,12 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
+  "dependencies": {
+    "@prisma/client": "^6.12.0",
+    "argon2": "^0.43.0"
+  },
   "devDependencies": {
     "@types/node": "^20.19.9",
-    "concurrently": "^9.2.0",
     "prisma": "^6.12.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"

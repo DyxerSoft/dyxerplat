@@ -7,8 +7,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 ## Arquitectura
 
 - Monorepo con Yarn workspaces.
-- `apps/web`: Next.js para landing publica, blog, login y plataforma interna.
-- `apps/api`: Node.js, Express, Prisma y PostgreSQL.
+- `apps/web`: Next.js (App Router) con UI y Route Handlers `/api/v1`.
 - `packages/shared`: constantes compartidas de roles, permisos y contratos simples.
 - `prisma`: esquema, migraciones y seed de datos base.
 - `docker-compose.yml`: PostgreSQL local para desarrollo.
@@ -24,7 +23,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 2. Seguridad:
    - Roles: `SUPER_ADMIN`, `ADMIN`, `USER`.
    - Permisos por modulo y accion.
-   - Middleware de autenticacion y permisos en API.
+   - Helpers de autenticacion y permisos en Route Handlers.
    - Administracion interna de usuarios, roles y permisos.
    - Estado: implementado.
 

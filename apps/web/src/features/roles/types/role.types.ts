@@ -23,4 +23,5 @@ export type RoleFormValues = {
   code: string;
   description: string;
   permissionCodes: string[];
+  grantAllPermissions?: boolean;
 };

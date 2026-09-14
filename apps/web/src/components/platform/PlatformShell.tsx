@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, LayoutDashboard, LogOut, Newspaper, Shield, Users } from "lucide-react";
+import { Building2, Inbox, LayoutDashboard, LogOut, Newspaper, Shield, Users } from "lucide-react";
 import { clearSession, getCurrentUser, getStoredSession, saveSession } from "@/features/auth/auth-service";
 import type { AuthSession } from "@/features/auth/types";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/leads", label: "Leads", icon: Inbox },
   { href: "/companies", label: "Companias", icon: Building2 },
   { href: "/posts", label: "Publicaciones", icon: Newspaper },
   { href: "/users", label: "Usuarios", icon: Users },
@@ -23,18 +24,29 @@ export function PlatformShell({
   const router = useRouter();
   const pathname = usePathname();
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const storedSession = getStoredSession();
 
     if (!storedSession) {
+      setSession(null);
+      setIsReady(true);
       router.replace("/login");
       return;
     }
 
+    setSession(storedSession);
+    setIsReady(true);
+
+    let cancelled = false;
+
     getCurrentUser(storedSession.token)
       .then((user) => {
+        if (cancelled) {
+          return;
+        }
+
         const refreshedSession = {
           token: storedSession.token,
           user
@@ -43,31 +55,34 @@ export function PlatformShell({
         setSession(refreshedSession);
       })
       .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
         clearSession();
+        setSession(null);
         router.replace("/login");
-      })
-      .finally(() => {
-        setIsCheckingSession(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleLogout = () => {
     clearSession();
+    setSession(null);
     router.replace("/login");
   };
 
-  if (isCheckingSession) {
+  if (!isReady || !session) {
     return (
       <main className="grid min-h-screen place-items-center bg-background">
         <div className="rounded-lg border border-border bg-card px-5 py-4 text-sm font-semibold text-muted-foreground">
-          Validando sesion...
+          Cargando plataforma...
         </div>
       </main>
     );
-  }
-
-  if (!session) {
-    return null;
   }
 
   return (
@@ -80,12 +95,13 @@ export function PlatformShell({
           </div>
           <nav className="space-y-1 p-3">
             {navigation.map(({ href, label, icon: Icon }) => {
-              const isActive = pathname === href;
+              const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
               return (
                 <Link
                   key={href}
                   href={href}
+                  prefetch
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition ${
                     isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}

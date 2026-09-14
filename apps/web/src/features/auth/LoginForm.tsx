@@ -2,15 +2,16 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogIn } from "lucide-react";
+import { Loader2, Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { ApiClientError } from "@/lib/api-client";
+import { getErrorMessage } from "@/lib/crm";
 import { loginWithEmail, saveSession } from "./auth-service";
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@dyxerplat.local");
-  const [password, setPassword] = useState("Cambiar123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,11 +26,7 @@ export function LoginForm() {
       toast.success("Inicio de sesion correcto.");
       router.replace("/dashboard");
     } catch (error) {
-      const message =
-        error instanceof ApiClientError
-          ? error.message
-          : "No se pudo iniciar sesion. Intenta nuevamente.";
-
+      const message = getErrorMessage(error, "No se pudo iniciar sesion. Intenta nuevamente.");
       setErrorMessage(message);
       toast.error(message);
     } finally {
@@ -38,39 +35,55 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-semibold text-foreground">
           Correo electronico
         </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-          placeholder="admin@dyxerplat.local"
-        />
+        <div className="relative">
+          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            className="w-full rounded-lg border border-input bg-background/80 py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-secondary/60 focus:ring-2 focus:ring-secondary/20"
+            placeholder="tu@empresa.com"
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
         <label htmlFor="password" className="text-sm font-semibold text-foreground">
           Contrasena
         </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-          placeholder="Tu contrasena"
-        />
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            className="w-full rounded-lg border border-input bg-background/80 py-2.5 pl-10 pr-11 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-secondary/60 focus:ring-2 focus:ring-secondary/20"
+            placeholder="Tu contrasena"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       {errorMessage ? (
-        <div className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+        <div className="rounded-lg border border-destructive/25 bg-destructive/10 px-3 py-2.5 text-sm font-medium text-destructive">
           {errorMessage}
         </div>
       ) : null}
@@ -78,10 +91,10 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90 hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-        Ingresar
+        {isSubmitting ? "Ingresando..." : "Ingresar"}
       </button>
     </form>
   );

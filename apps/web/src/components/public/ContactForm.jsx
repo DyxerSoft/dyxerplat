@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mlgywkel';
+const LEADS_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1'}/leads/public`;
 
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -59,41 +59,34 @@ function ContactForm() {
     setIsSubmitting(true);
 
     try {
-      const timestamp = new Date().toISOString();
       const serviceLabel = serviceLabels[data.servicio] || data.servicio;
-      const payload = {
-        nombre: data.nombre,
-        empresa: data.empresa,
-        cargo: data.cargo || 'No indicado',
-        correo: data.correo,
-        email: data.correo,
-        telefono: data.telefono,
-        servicio: serviceLabel,
-        mensaje: data.mensaje,
-        enviado_en: timestamp,
-        _subject: `Nuevo contacto Dyxersoft: ${data.empresa}`,
-        _replyto: data.correo,
-      };
-
-      localStorage.setItem(`dyxersoft_contact_${Date.now()}`, JSON.stringify(payload));
-
-      const response = await fetch(FORMSPREE_ENDPOINT, {
+      const response = await fetch(LEADS_ENDPOINT, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          fullName: data.nombre,
+          companyName: data.empresa,
+          position: data.cargo || null,
+          email: data.correo,
+          phone: data.telefono,
+          serviceInterest: serviceLabel,
+          message: data.mensaje,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Formspree request failed');
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.message || 'No se pudo guardar el lead');
       }
 
       toast.success('Tu mensaje fue enviado correctamente. Te contactaremos pronto.');
       reset();
     } catch (error) {
-      toast.error('No se pudo enviar el formulario. Por favor intenta nuevamente.');
+      toast.error(error?.message || 'No se pudo enviar el formulario. Por favor intenta nuevamente.');
     } finally {
       setIsSubmitting(false);
     }

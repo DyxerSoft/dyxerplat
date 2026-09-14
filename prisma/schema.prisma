@@ -24,6 +24,13 @@ enum PostStatus {
   ARCHIVED
 }
 
+enum LeadStatus {
+  NEW
+  IN_CONTACT
+  CLOSED_WON
+  CLOSED_LOST
+}
+
 model User {
   id                 String     @id @default(uuid()) @db.Uuid
   email              String     @unique
@@ -45,8 +52,9 @@ model User {
   deletedAt          DateTime?  @map("deleted_at")
   deletedById        String?    @map("deleted_by_id") @db.Uuid
 
-  userRoles UserRole[]
-  posts     Post[]     @relation("PostAuthor")
+  userRoles    UserRole[]
+  posts        Post[]     @relation("PostAuthor")
+  leadsUpdated Lead[]     @relation("LeadUpdatedBy")
 
   @@map("users")
 }
@@ -239,4 +247,32 @@ model PostTagRelation {
 
   @@id([postId, tagId])
   @@map("post_tag_relations")
+}
+
+model Lead {
+  id              String     @id @default(uuid()) @db.Uuid
+  fullName        String     @map("full_name")
+  companyName     String     @map("company_name")
+  position        String?
+  email           String
+  phone           String
+  serviceInterest String     @map("service_interest")
+  message         String
+  status          LeadStatus @default(NEW)
+  notes           String?
+  contactedAt     DateTime?  @map("contacted_at")
+  closedAt        DateTime?  @map("closed_at")
+  isDeleted       Boolean    @default(false) @map("is_deleted")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  updatedById     String?    @map("updated_by_id") @db.Uuid
+  deletedAt       DateTime?  @map("deleted_at")
+  deletedById     String?    @map("deleted_by_id") @db.Uuid
+
+  updatedBy User? @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedById])
+  @@map("leads")
 }

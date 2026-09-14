@@ -39,7 +39,7 @@ async function main() {
     }
   });
 
-  await prisma.role.upsert({
+  const adminRole = await prisma.role.upsert({
     where: { code: ROLE_CODES.ADMIN },
     update: {
       name: "Admin",
@@ -70,20 +70,22 @@ async function main() {
   });
 
   await Promise.all(
-    permissions.map((permission) =>
-      prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: superAdminRole.id,
+    [superAdminRole, adminRole].flatMap((role) =>
+      permissions.map((permission) =>
+        prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId: role.id,
+              permissionId: permission.id
+            }
+          },
+          update: {},
+          create: {
+            roleId: role.id,
             permissionId: permission.id
           }
-        },
-        update: {},
-        create: {
-          roleId: superAdminRole.id,
-          permissionId: permission.id
-        }
-      })
+        })
+      )
     )
   );
 
