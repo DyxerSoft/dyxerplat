@@ -24,17 +24,16 @@ enum PostStatus {
   ARCHIVED
 }
 
-enum ContactInquiryStatus {
+enum LeadStatus {
   NEW
-  CONTACTED
-  FOLLOW_UP
-  CONVERTED
-  CLOSED
+  IN_CONTACT
+  CLOSED_WON
+  CLOSED_LOST
 }
 
 model User {
   id                 String     @id @default(uuid()) @db.Uuid
-  email              String
+  email              String     @unique
   passwordHash       String     @map("password_hash")
   firstName          String     @map("first_name")
   lastName           String     @map("last_name")
@@ -53,8 +52,9 @@ model User {
   deletedAt          DateTime?  @map("deleted_at")
   deletedById        String?    @map("deleted_by_id") @db.Uuid
 
-  userRoles UserRole[]
-  posts     Post[]     @relation("PostAuthor")
+  userRoles    UserRole[]
+  posts        Post[]     @relation("PostAuthor")
+  leadsUpdated Lead[]     @relation("LeadUpdatedBy")
 
   @@map("users")
 }
@@ -62,7 +62,7 @@ model User {
 model Role {
   id          String    @id @default(uuid()) @db.Uuid
   name        String
-  code        String
+  code        String    @unique
   description String?
   isSystem    Boolean   @default(false) @map("is_system")
   isDeleted   Boolean   @default(false) @map("is_deleted")
@@ -181,7 +181,7 @@ model MediaFile {
 model PostCategory {
   id          String    @id @default(uuid()) @db.Uuid
   name        String
-  slug        String
+  slug        String    @unique
   isDeleted   Boolean   @default(false) @map("is_deleted")
   createdAt   DateTime  @default(now()) @map("created_at")
   createdById String?   @map("created_by_id") @db.Uuid
@@ -198,7 +198,7 @@ model PostCategory {
 model PostTag {
   id          String    @id @default(uuid()) @db.Uuid
   name        String
-  slug        String
+  slug        String    @unique
   isDeleted   Boolean   @default(false) @map("is_deleted")
   createdAt   DateTime  @default(now()) @map("created_at")
   createdById String?   @map("created_by_id") @db.Uuid
@@ -215,7 +215,7 @@ model PostTag {
 model Post {
   id           String     @id @default(uuid()) @db.Uuid
   title        String
-  slug         String
+  slug         String     @unique
   excerpt      String?
   content      String
   status       PostStatus @default(DRAFT)
@@ -249,24 +249,30 @@ model PostTagRelation {
   @@map("post_tag_relations")
 }
 
-model ContactInquiry {
-  id          String               @id @default(uuid()) @db.Uuid
-  name        String
-  company     String
-  email       String
-  phone       String?
-  service     String
-  message     String
-  status      ContactInquiryStatus @default(NEW)
-  notes       String?
-  contactedAt DateTime?            @map("contacted_at")
-  isDeleted   Boolean              @default(false) @map("is_deleted")
-  createdAt   DateTime             @default(now()) @map("created_at")
-  updatedAt   DateTime             @updatedAt @map("updated_at")
-  updatedById String?              @map("updated_by_id") @db.Uuid
-  deletedAt   DateTime?            @map("deleted_at")
-  deletedById String?              @map("deleted_by_id") @db.Uuid
+model Lead {
+  id              String     @id @default(uuid()) @db.Uuid
+  fullName        String     @map("full_name")
+  companyName     String     @map("company_name")
+  position        String?
+  email           String
+  phone           String
+  serviceInterest String     @map("service_interest")
+  message         String
+  status          LeadStatus @default(NEW)
+  notes           String?
+  contactedAt     DateTime?  @map("contacted_at")
+  closedAt        DateTime?  @map("closed_at")
+  isDeleted       Boolean    @default(false) @map("is_deleted")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  updatedById     String?    @map("updated_by_id") @db.Uuid
+  deletedAt       DateTime?  @map("deleted_at")
+  deletedById     String?    @map("deleted_by_id") @db.Uuid
 
-  @@index([status, createdAt])
-  @@map("contact_inquiries")
+  updatedBy User? @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedById])
+  @@map("leads")
 }

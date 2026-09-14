@@ -17,13 +17,15 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { submitInquiry } from '@/features/inquiries/inquiry-service';
+
+const LEADS_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1'}/leads/public`;
 
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   empresa: z.string().min(1, 'La empresa es requerida'),
+  cargo: z.string().optional(),
   correo: z.string().email('Correo electronico invalido'),
-  telefono: z.string().optional(),
+  telefono: z.string().min(1, 'El telefono es requerido'),
   servicio: z.string().min(1, 'Selecciona un servicio'),
   mensaje: z.string().min(10, 'El mensaje debe tener al menos 10 caracteres'),
 });
@@ -58,19 +60,33 @@ function ContactForm() {
 
     try {
       const serviceLabel = serviceLabels[data.servicio] || data.servicio;
-      await submitInquiry({
-        name: data.nombre,
-        company: data.empresa,
-        email: data.correo,
-        phone: data.telefono || '',
-        service: serviceLabel,
-        message: data.mensaje,
+      const response = await fetch(LEADS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: data.nombre,
+          companyName: data.empresa,
+          position: data.cargo || null,
+          email: data.correo,
+          phone: data.telefono,
+          serviceInterest: serviceLabel,
+          message: data.mensaje,
+        }),
       });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.message || 'No se pudo guardar el lead');
+      }
 
       toast.success('Tu mensaje fue enviado correctamente. Te contactaremos pronto.');
       reset();
     } catch (error) {
-      toast.error('No se pudo enviar el formulario. Por favor intenta nuevamente.');
+      toast.error(error?.message || 'No se pudo enviar el formulario. Por favor intenta nuevamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -92,14 +108,20 @@ function ContactForm() {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="cargo" className="text-foreground">Cargo</Label>
+          <Input id="cargo" {...register('cargo')} placeholder="Tu cargo en la empresa" className={inputClass} />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="correo" className="text-foreground">Correo electronico *</Label>
           <Input id="correo" type="email" {...register('correo')} placeholder="tu@email.com" className={inputClass} />
           {errors.correo && <p className="text-sm text-destructive">{errors.correo.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="telefono" className="text-foreground">Telefono / WhatsApp</Label>
+          <Label htmlFor="telefono" className="text-foreground">Telefono / WhatsApp *</Label>
           <Input id="telefono" {...register('telefono')} placeholder="62069477" className={inputClass} />
+          {errors.telefono && <p className="text-sm text-destructive">{errors.telefono.message}</p>}
         </div>
 
         <div className="space-y-2">
