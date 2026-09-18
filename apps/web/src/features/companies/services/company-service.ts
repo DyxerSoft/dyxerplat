@@ -8,8 +8,7 @@ import type {
   CompanyFormValues,
   CompanyStatus,
   ContactFormValues,
-  PaginatedCompanies,
-  PaginatedContacts
+  PaginatedCompanies
 } from "../types/company.types";
 
 function getToken() {
@@ -45,20 +44,42 @@ export function createCompany(values: CompanyFormValues) {
   return apiRequest<Company>("/companies", {
     method: "POST",
     token: getToken(),
-    body: values
+    body: sanitizeCompany(values)
   });
-}
-
-export function getCompany(companyId: string) {
-  return apiRequest<Company>(`/companies/${companyId}`, { token: getToken() });
 }
 
 export function updateCompany(companyId: string, values: CompanyFormValues) {
   return apiRequest<Company>(`/companies/${companyId}`, {
     method: "PUT",
     token: getToken(),
-    body: values
+    body: sanitizeCompany(values)
   });
+}
+
+function sanitizeCompany(values: CompanyFormValues) {
+  return {
+    ...values,
+    name: values.name.trim(),
+    legalName: values.legalName.trim() || null,
+    taxId: values.taxId.trim() || null,
+    email: values.email.trim() || null,
+    phone: values.phone.trim() || null,
+    address: values.address.trim() || null,
+    website: values.website.trim() || null,
+    notes: values.notes.trim() || null
+  };
+}
+
+function sanitizeContact(values: ContactFormValues) {
+  return {
+    ...values,
+    firstName: values.firstName.trim(),
+    lastName: values.lastName.trim(),
+    email: values.email.trim() || null,
+    phone: values.phone.trim() || null,
+    position: values.position.trim() || null,
+    notes: values.notes.trim() || null
+  };
 }
 
 export function deleteCompany(companyId: string) {
@@ -68,8 +89,8 @@ export function deleteCompany(companyId: string) {
   });
 }
 
-export function listContacts(companyId: string, params: { q?: string; status?: CompanyStatus | ""; page?: number; pageSize?: number } = {}) {
-  return apiRequest<PaginatedContacts>(`/companies/${companyId}/contacts${queryString(params)}`, {
+export function listContacts(companyId: string, params: { q?: string; status?: CompanyStatus | "" } = {}) {
+  return apiRequest<CompanyContact[]>(`/companies/${companyId}/contacts${queryString(params)}`, {
     token: getToken()
   });
 }
@@ -78,7 +99,7 @@ export function createContact(companyId: string, values: ContactFormValues) {
   return apiRequest<CompanyContact>(`/companies/${companyId}/contacts`, {
     method: "POST",
     token: getToken(),
-    body: values
+    body: sanitizeContact(values)
   });
 }
 
@@ -86,7 +107,7 @@ export function updateContact(companyId: string, contactId: string, values: Cont
   return apiRequest<CompanyContact>(`/companies/${companyId}/contacts/${contactId}`, {
     method: "PUT",
     token: getToken(),
-    body: values
+    body: sanitizeContact(values)
   });
 }
 

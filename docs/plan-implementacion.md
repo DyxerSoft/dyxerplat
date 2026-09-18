@@ -7,9 +7,8 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 ## Arquitectura
 
 - Monorepo con Yarn workspaces.
-- `apps/web`: Next.js para landing publica, blog, login y plataforma interna.
-- `apps/api`: Node.js, Express, Prisma y PostgreSQL.
-- Cada aplicacion mantiene sus propios tipos y constantes dentro de `apps/api` y `apps/web`.
+- `apps/web`: Next.js (App Router) con UI y Route Handlers `/api/v1`.
+- `packages/shared`: constantes compartidas de roles, permisos y contratos simples.
 - `prisma`: esquema, migraciones y seed de datos base.
 - `docker-compose.yml`: PostgreSQL local para desarrollo.
 
@@ -24,7 +23,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 2. Seguridad:
    - Roles: `SUPER_ADMIN`, `ADMIN`, `USER`.
    - Permisos por modulo y accion.
-   - Middleware de autenticacion y permisos en API.
+   - Helpers de autenticacion y permisos en Route Handlers.
    - Administracion interna de usuarios, roles y permisos.
    - Estado: implementado.
 
@@ -40,7 +39,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
    - Categorias.
    - Tags.
    - Imagen de portada guardada en base de datos.
-   - Estado: implementado para publicaciones, blog publico e imagen de portada. Categorias y tags quedan modelados en BD para una segunda iteracion de UI.
+   - Estado: implementado para publicaciones, categorias, tags, blog publico e imagen de portada.
 
 5. Auditoria basica:
    - `created_at`, `created_by_id`.
@@ -66,6 +65,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 - `feature/crm-companias-contactos`: companias y encargados de contacto.
 - `feature/publicaciones-blog`: publicaciones privadas y blog publico.
 - `feature/usuarios-roles-permisos`: usuarios, roles y permisos.
+- `feature/categorias-tags-blog`: categorias y tags para publicaciones.
 
 ## Pendientes a confirmar
 
