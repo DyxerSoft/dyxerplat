@@ -5,7 +5,7 @@ Plataforma Dyxerplat para landing publica, blog y CRM interno de DyxerSoft.
 ## Stack
 
 - Yarn workspaces.
-- Next.js (App Router) en `apps/web` con Route Handlers en `/api/v1`.
+- Next.js (App Router) en `apps` con Route Handlers en `/api/v1`.
 - PostgreSQL local con Docker.
 - Prisma schema y seed en `prisma`.
 
@@ -51,7 +51,7 @@ yarn dev
 ## Deploy en Vercel
 
 1. Importar el monorepo en Vercel.
-2. Root Directory: `apps/web` (o configurar el build desde la raiz).
+2. Root Directory: deja la **raiz** del repo (Vercel usa `vercel.json`).
 3. Variables de entorno:
    - `DATABASE_URL` (Neon/Supabase/Vercel Postgres con pooling)
    - `JWT_SECRET`

@@ -1,9 +1,9 @@
 # Despliegue unico en Vercel
 
-Este repositorio se despliega como un solo proyecto:
+Este repositorio se despliega como un solo proyecto Next.js:
 
-- Next.js publica la web y la landing page.
-- Express se ejecuta como una Vercel Function bajo `/api/v1`.
+- La web, el blog y el CRM viven en `apps`.
+- Las APIs estan en Route Handlers bajo `/api/v1`.
 - PostgreSQL permanece como un servicio externo.
 
 ## Configuracion del proyecto
@@ -11,7 +11,7 @@ Este repositorio se despliega como un solo proyecto:
 Al importar el repositorio en Vercel:
 
 1. Deja **Root Directory** en la raiz del repositorio (`.`).
-2. Vercel leera `vercel.json`; no crees un segundo proyecto para `apps/api`.
+2. Vercel leera `vercel.json`; no hace falta un Root Directory `apps/web`.
 3. Configura las variables de entorno de Production y Preview.
 
 Variables obligatorias:
@@ -31,18 +31,15 @@ SUPER_ADMIN_FIRST_NAME=Super
 SUPER_ADMIN_LAST_NAME=Admin
 ```
 
-No configures `NEXT_PUBLIC_API_BASE_URL` en Vercel. La web usa `/api/v1`
-en el mismo dominio. `API_BASE_URL` y `CORS_ORIGIN` se calculan con las
-variables nativas de Vercel, aunque se pueden definir manualmente si se usa
-un dominio personalizado.
+No configures `NEXT_PUBLIC_API_BASE_URL` en Vercel salvo que quieras otro base path.
+Por defecto la app usa `/api/v1` en el mismo dominio.
 
 El build ejecuta `prisma generate` y `prisma migrate deploy` antes de compilar
-Next.js. La base debe aceptar conexiones desde Vercel y usar SSL cuando el
-proveedor lo requiera.
+Next.js (`yarn vercel-build`). La base debe aceptar conexiones desde Vercel.
 
 ## Inicializacion de datos
 
-Las migraciones se aplican automáticamente durante el despliegue. Para una
+Las migraciones se aplican automaticamente durante el despliegue. Para una
 base nueva, ejecuta el seed una vez desde un entorno que tenga las mismas
 variables:
 

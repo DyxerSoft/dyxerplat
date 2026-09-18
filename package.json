@@ -4,16 +4,18 @@
   "private": true,
   "packageManager": "yarn@1.22.22",
   "workspaces": [
-    "apps/*",
+    "apps",
     "packages/*"
   ],
   "scripts": {
     "dev": "yarn workspace @dyxerplat/web dev",
     "dev:web": "yarn workspace @dyxerplat/web dev",
-    "build": "yarn workspaces run build",
+    "build": "yarn workspace @dyxerplat/web build",
+    "vercel-build": "yarn db:generate && yarn db:deploy && yarn workspace @dyxerplat/web build",
     "typecheck": "yarn workspaces run typecheck",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
