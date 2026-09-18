@@ -2,7 +2,7 @@
 
 import { apiRequest } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
-import type { Permission, Role, RoleFormValues } from "../types/role.types";
+import type { Permission, Role, RoleFormValues, RolesPage } from "../types/role.types";
 
 function getToken() {
   const session = getStoredSession();
@@ -10,7 +10,16 @@ function getToken() {
 }
 
 export function listRoles() {
-  return apiRequest<Role[]>("/roles", {
+  return listRolesPage({ pageSize: 100 }).then((result) => result.items);
+}
+
+export function listRolesPage(params: { q?: string; type?: string; page?: number; pageSize?: number } = {}) {
+  const query = new URLSearchParams();
+  if (params.q?.trim()) query.set("q", params.q.trim());
+  if (params.type) query.set("type", params.type);
+  query.set("page", String(params.page ?? 1));
+  query.set("pageSize", String(params.pageSize ?? 10));
+  return apiRequest<RolesPage>(`/roles?${query.toString()}`, {
     token: getToken()
   });
 }

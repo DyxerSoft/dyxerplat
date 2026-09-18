@@ -1,28 +1,14 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, Edit, Loader2, Plus, Trash2, UserRound } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Building2, Edit, Plus, Save, Search, Trash2, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
-import { PERMISSIONS } from "@dyxerplat/shared";
-import {
-  ActionIconButton,
-  DataTable,
-  EmptyState,
-  EmptyPanel,
-  FilterBar,
-  LoadingRow,
-  Modal,
-  PageHeader,
-  PaginationBar,
-  PrimaryButton,
-  SearchInput,
-  SecondaryButton,
-  SelectField,
-  StatusPill,
-  TableHead,
-  TextField
-} from "@/components/platform/crm-ui";
-import { getErrorMessage, getSessionPermissions } from "@/lib/crm";
+import { PERMISSIONS } from "@/lib/permissions";
+import { getUserFacingErrorMessage } from "@/lib/api-client";
+import { getStoredSession } from "@/features/auth/auth-service";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SelectField } from "@/components/ui/SelectField";
 import {
   createCompany,
   createContact,
@@ -58,75 +44,68 @@ const emptyContactForm: ContactFormValues = {
   notes: ""
 };
 
-type Filters = {
-  q: string;
-  status: CompanyStatus | "";
-};
+function getErrorMessage(error: unknown) {
+  return getUserFacingErrorMessage(error);
+}
 
 export function CompanyManager() {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [draftQ, setDraftQ] = useState("");
-  const [draftStatus, setDraftStatus] = useState<CompanyStatus | "">("");
-  const [filters, setFilters] = useState<Filters>({ q: "", status: "" });
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [status, setStatus] = useState<CompanyStatus | "">("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [totalCompanies, setTotalCompanies] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [companyForm, setCompanyForm] = useState<CompanyFormValues>(emptyCompanyForm);
   const [contactsCompany, setContactsCompany] = useState<Company | null>(null);
   const [contacts, setContacts] = useState<CompanyContact[]>([]);
-  const [isContactsLoading, setIsContactsLoading] = useState(false);
   const [editingContact, setEditingContact] = useState<CompanyContact | null>(null);
   const [contactForm, setContactForm] = useState<ContactFormValues>(emptyContactForm);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<CompanyContact | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const permissions = useMemo(() => getSessionPermissions(), []);
+  const permissions = useMemo(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+
+    return getStoredSession()?.user.permissions ?? [];
+  }, []);
+
   const canCreate = permissions.includes(PERMISSIONS.COMPANIES_CREATE);
   const canUpdate = permissions.includes(PERMISSIONS.COMPANIES_UPDATE);
   const canDelete = permissions.includes(PERMISSIONS.COMPANIES_DELETE);
   const canCreateContact = permissions.includes(PERMISSIONS.CONTACTS_CREATE);
+  const canReadContact = permissions.includes(PERMISSIONS.CONTACTS_READ);
   const canUpdateContact = permissions.includes(PERMISSIONS.CONTACTS_UPDATE);
   const canDeleteContact = permissions.includes(PERMISSIONS.CONTACTS_DELETE);
 
-  const loadCompanies = useCallback(async () => {
+  const loadCompanies = async () => {
     setIsLoading(true);
     try {
-      const result = await listCompanies({
-        q: filters.q,
-        status: filters.status,
-        page,
-        pageSize: 10
-      });
-
-      if (result.items.length === 0 && page > 1) {
-        setPage((current) => Math.max(1, current - 1));
-        return;
-      }
-
+      const result = await listCompanies({ q: debouncedQ, status, page, pageSize: 10 });
       setCompanies(result.items);
       setTotalPages(result.pagination.totalPages);
-      setTotal(result.pagination.total);
+      setTotalCompanies(result.pagination.total);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
-  }, [filters, page]);
+  };
 
   useEffect(() => {
     void loadCompanies();
-  }, [loadCompanies]);
+  }, [page, debouncedQ, status]);
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPage(1);
-    setFilters({
-      q: draftQ.trim(),
-      status: draftStatus
-    });
-  };
+  useEffect(() => {
+    const timeout = window.setTimeout(() => { setPage(1); setDebouncedQ(q); }, 300);
+    return () => window.clearTimeout(timeout);
+  }, [q]);
 
   const openCreateCompany = () => {
     setEditingCompany(null);
@@ -152,35 +131,37 @@ export function CompanyManager() {
 
   const handleSaveCompany = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSaving(true);
     try {
       if (editingCompany) {
         await updateCompany(editingCompany.id, companyForm);
-        toast.success("Compania actualizada correctamente.");
+        toast.success("Compañía actualizada correctamente.");
       } else {
         await createCompany(companyForm);
-        toast.success("Compania creada correctamente.");
+        toast.success("Compañía creada correctamente.");
       }
       setIsCompanyModalOpen(false);
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const handleDeleteCompany = async (company: Company) => {
-    if (!window.confirm(`Eliminar la compania ${company.name}? Esta accion sera logica.`)) {
-      return;
-    }
+    setCompanyToDelete(company);
+  };
 
+  const confirmDeleteCompany = async () => {
+    if (!companyToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteCompany(company.id);
-      toast.success("Compania eliminada correctamente.");
+      await deleteCompany(companyToDelete.id);
+      toast.success("Compañía eliminada correctamente.");
+      setCompanyToDelete(null);
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -188,13 +169,10 @@ export function CompanyManager() {
     setContactsCompany(company);
     setEditingContact(null);
     setContactForm(emptyContactForm);
-    setIsContactsLoading(true);
     try {
-      setContacts(await listContacts(company.id));
+      setContacts((await listContacts(company.id, { pageSize: 100 })).items);
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      setIsContactsLoading(false);
     }
   };
 
@@ -203,7 +181,7 @@ export function CompanyManager() {
       return;
     }
 
-    setContacts(await listContacts(contactsCompany.id));
+    setContacts((await listContacts(contactsCompany.id, { pageSize: 100 })).items);
   };
 
   const openEditContact = (contact: CompanyContact) => {
@@ -231,7 +209,6 @@ export function CompanyManager() {
       return;
     }
 
-    setIsSaving(true);
     try {
       if (editingContact) {
         await updateContact(contactsCompany.id, editingContact.id, contactForm);
@@ -245,172 +222,183 @@ export function CompanyManager() {
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const handleDeleteContact = async (contact: CompanyContact) => {
-    if (!contactsCompany || !window.confirm(`Eliminar el contacto ${contact.firstName} ${contact.lastName}?`)) {
-      return;
-    }
+    if (!contactsCompany) return;
+    setContactToDelete(contact);
+  };
 
+  const confirmDeleteContact = async () => {
+    if (!contactsCompany || !contactToDelete) return;
+    setIsDeleting(true);
     try {
-      await deleteContact(contactsCompany.id, contact.id);
+      await deleteContact(contactsCompany.id, contactToDelete.id);
       toast.success("Contacto eliminado correctamente.");
+      setContactToDelete(null);
       await refreshContacts();
       await loadCompanies();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        eyebrow="CRM"
-        title="Companias"
-        description="Gestiona companias y sus encargados de contacto."
-        actions={
-          canCreate ? (
-            <PrimaryButton onClick={openCreateCompany}>
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm lg:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">CRM</p>
+            <div className="mt-2 flex items-center gap-3"><h1 className="text-3xl font-black">Compañías</h1><span className="rounded-full bg-muted px-3 py-1 text-xs font-black text-muted-foreground">{totalCompanies} registradas</span></div>
+            <p className="mt-2 text-sm text-muted-foreground">Gestiona compañías y sus encargados de contacto.</p>
+          </div>
+          {canCreate ? (
+            <button
+              type="button"
+              onClick={openCreateCompany}
+              className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-black text-primary-foreground transition hover:bg-primary/90"
+            >
               <Plus className="mr-2 h-4 w-4" />
-              Crear compania
-            </PrimaryButton>
-          ) : null
-        }
-      >
-        <FilterBar onSubmit={handleSearch}>
-          <SearchInput
-            value={draftQ}
-            onChange={setDraftQ}
-            placeholder="Buscar por nombre, NIT, correo..."
-          />
-          <SelectField value={draftStatus} onChange={(value) => setDraftStatus(value as CompanyStatus | "")}>
-            <option value="">Todos</option>
-            <option value="ACTIVE">Activas</option>
-            <option value="INACTIVE">Inactivas</option>
-          </SelectField>
-          <SecondaryButton type="submit">Filtrar</SecondaryButton>
-        </FilterBar>
-      </PageHeader>
+              Crear compañía
+            </button>
+          ) : null}
+        </div>
 
-      {!isLoading && companies.length === 0 ? (
-        <EmptyPanel>
-          <EmptyState
-            icon={Building2}
-            title={filters.q || filters.status ? "Sin resultados" : "No hay companias registradas"}
-            description={
-              filters.q || filters.status
-                ? "Prueba con otros filtros o limpia la busqueda."
-                : "Crea la primera compania para comenzar."
-            }
-            action={
-              canCreate && !filters.q && !filters.status ? (
-                <PrimaryButton onClick={openCreateCompany}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear compania
-                </PrimaryButton>
-              ) : null
-            }
-          />
-        </EmptyPanel>
-      ) : (
-        <DataTable
-          footer={
-            <PaginationBar
-              page={page}
-              totalPages={totalPages}
-              total={total}
-              onPrevious={() => setPage((value) => Math.max(1, value - 1))}
-              onNext={() => setPage((value) => Math.min(totalPages, value + 1))}
+        <div className="mt-6 max-w-full overflow-x-auto pb-1"><div className="inline-flex w-max items-center gap-3">
+          <div className="relative shrink-0" style={{ width: "500px", minWidth: "500px" }}>
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              style={{ paddingLeft: "3rem", paddingRight: "1rem" }}
+              className="h-11 w-full rounded-lg border border-secondary/30 bg-background text-base outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/15"
+              placeholder="Buscar por nombre, NIT, correo..."
             />
-          }
-        >
-          <TableHead
-            columns={[
-              { label: "Compania" },
-              { label: "Contacto" },
-              { label: "Estado" },
-              { label: "Encargados" },
-              { label: "Acciones", align: "right" }
-            ]}
+          </div>
+          <SelectField
+            ariaLabel="Filtrar compañías por estado"
+            value={status}
+            onValueChange={(value) => { setStatus(value as CompanyStatus | ""); setPage(1); }}
+            options={[{ value: "", label: "Todos los estados" }, { value: "ACTIVE", label: "Activas" }, { value: "INACTIVE", label: "Inactivas" }]}
+            className="h-11 w-[180px] bg-muted/60 shadow-none"
           />
-          <tbody>
-            {isLoading ? (
-              <LoadingRow colSpan={5} label="Cargando companias..." />
-            ) : (
-              companies.map((company) => (
-                <tr key={company.id} className="border-t border-border transition hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <p className="font-bold text-foreground">{company.name}</p>
-                    <p className="text-xs text-muted-foreground">{company.legalName || company.taxId || "Sin razon social"}</p>
+        </div></div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[920px] border-collapse text-sm">
+            <thead className="bg-muted/70 text-center text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3">Compañía</th>
+                <th className="px-4 py-3">Contacto</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Encargados</th>
+                <th className="px-4 py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                    Cargando compañías...
                   </td>
-                  <td className="px-4 py-3">
-                    <p>{company.email || "Sin correo"}</p>
-                    <p className="text-xs text-muted-foreground">{company.phone || "Sin telefono"}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusPill tone={company.status === "ACTIVE" ? "success" : "neutral"}>
-                      {company.status === "ACTIVE" ? "Activa" : "Inactiva"}
-                    </StatusPill>
-                  </td>
-                  <td className="px-4 py-3 font-semibold">{company.contactsCount}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <ActionIconButton title="Contactos" onClick={() => void openContacts(company)}>
-                        <UserRound className="h-4 w-4" />
-                      </ActionIconButton>
-                      {canUpdate ? (
-                        <ActionIconButton title="Editar" onClick={() => openEditCompany(company)}>
-                          <Edit className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
-                      {canDelete ? (
-                        <ActionIconButton title="Eliminar" danger onClick={() => void handleDeleteCompany(company)}>
-                          <Trash2 className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
+                </tr>
+              ) : companies.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-12">
+                    <div className="flex w-full flex-col items-center justify-center text-center">
+                      <Building2 className="mb-3 h-9 w-9 text-secondary" />
+                      <p className="mx-auto font-bold">No hay compañías registradas</p>
+                      <p className="mx-auto mt-1 text-muted-foreground">Crea la primera compañía para comenzar.</p>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </DataTable>
-      )}
+              ) : (
+                companies.map((company) => (
+                  <tr key={company.id} className="border-t border-border text-center transition-colors hover:bg-muted/35">
+                    <td className="px-4 py-3 text-center">
+                      <p className="font-bold text-foreground">{company.name}</p>
+                      <p className="text-xs text-muted-foreground">{company.legalName || company.taxId || "Sin razon social"}</p>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <p>{company.email || "Sin correo"}</p>
+                      <p className="text-xs text-muted-foreground">{company.phone || "Sin telefono"}</p>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`rounded-full px-2 py-1 text-xs font-bold ${company.status === "ACTIVE" ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
+                        {company.status === "ACTIVE" ? "Activa" : "Inactiva"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">{company.contactsCount}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center gap-2">
+                        {canReadContact ? <Link href={`/companies/${company.id}/contacts`} className="rounded-md border border-border p-2 hover:bg-muted" title="Gestionar contactos">
+                          <UserRound className="h-4 w-4" />
+                        </Link> : null}
+                        {canUpdate ? (
+                          <button type="button" onClick={() => openEditCompany(company)} className="rounded-md border border-border p-2 hover:bg-muted" title="Editar">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                        {canDelete ? (
+                          <button type="button" onClick={() => handleDeleteCompany(company)} className="rounded-md border border-border p-2 text-destructive hover:bg-destructive/10" title="Eliminar">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm">
+          <span className="text-muted-foreground">
+            Pagina {page} de {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              className="rounded-md border border-border px-3 py-1 font-bold disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              className="rounded-md border border-border px-3 py-1 font-bold disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </section>
 
       {isCompanyModalOpen ? (
-        <Modal title={editingCompany ? "Editar compania" : "Crear compania"} onClose={() => setIsCompanyModalOpen(false)}>
+        <Modal title={editingCompany ? "Editar compañía" : "Crear compañía"} subtitle={editingCompany ? "Actualiza la información comercial y de contacto." : "Registra la información principal de la empresa."} onClose={() => setIsCompanyModalOpen(false)}>
           <form onSubmit={handleSaveCompany} className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <TextField label="Nombre *" value={companyForm.name} onChange={(value) => setCompanyForm({ ...companyForm, name: value })} required />
-            <TextField label="Razon social" value={companyForm.legalName} onChange={(value) => setCompanyForm({ ...companyForm, legalName: value })} />
-            <TextField label="NIT / Tax ID" value={companyForm.taxId} onChange={(value) => setCompanyForm({ ...companyForm, taxId: value })} />
-            <TextField label="Correo" type="email" value={companyForm.email} onChange={(value) => setCompanyForm({ ...companyForm, email: value })} />
-            <TextField label="Telefono" value={companyForm.phone} onChange={(value) => setCompanyForm({ ...companyForm, phone: value })} />
-            <TextField label="Sitio web" value={companyForm.website} onChange={(value) => setCompanyForm({ ...companyForm, website: value })} placeholder="https://" />
-            <TextField label="Direccion" value={companyForm.address} onChange={(value) => setCompanyForm({ ...companyForm, address: value })} className="md:col-span-2" />
-            <label className="space-y-1">
+            <TextField label="Nombre comercial" value={companyForm.name} onChange={(value) => setCompanyForm({ ...companyForm, name: value })} required placeholder="Ej. DYXERSOFT" />
+            <TextField label="Razón social" value={companyForm.legalName} onChange={(value) => setCompanyForm({ ...companyForm, legalName: value })} placeholder="Ej. DYXERSOFT S.R.L." />
+            <TextField label="NIT" value={companyForm.taxId} onChange={(value) => setCompanyForm({ ...companyForm, taxId: value })} placeholder="Identificador tributario" />
+            <TextField label="Correo" type="email" value={companyForm.email} onChange={(value) => setCompanyForm({ ...companyForm, email: value })} placeholder="contacto@empresa.com" />
+            <TextField label="Teléfono" value={companyForm.phone} onChange={(value) => setCompanyForm({ ...companyForm, phone: value })} placeholder="Ej. 70000000" />
+            <TextField label="Sitio web" value={companyForm.website} onChange={(value) => setCompanyForm({ ...companyForm, website: value })} placeholder="https://empresa.com" />
+            <TextField label="Dirección" value={companyForm.address} onChange={(value) => setCompanyForm({ ...companyForm, address: value })} className="md:col-span-2" placeholder="Dirección principal" />
+            <div className="space-y-2">
               <span className="text-sm font-bold">Estado</span>
-              <select
-                value={companyForm.status}
-                onChange={(event) => setCompanyForm({ ...companyForm, status: event.target.value as CompanyStatus })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="ACTIVE">Activa</option>
-                <option value="INACTIVE">Inactiva</option>
-              </select>
-            </label>
-            <TextField label="Notas" value={companyForm.notes} onChange={(value) => setCompanyForm({ ...companyForm, notes: value })} className="md:col-span-2" />
-            <div className="flex justify-end gap-2 md:col-span-2">
-              <SecondaryButton onClick={() => setIsCompanyModalOpen(false)} disabled={isSaving}>
-                Cancelar
-              </SecondaryButton>
-              <PrimaryButton type="submit" disabled={isSaving}>
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {editingCompany ? "Guardar cambios" : "Crear compania"}
-              </PrimaryButton>
+              <SelectField ariaLabel="Estado de la compañía" value={companyForm.status} onValueChange={(value) => setCompanyForm({ ...companyForm, status: value as CompanyStatus })} options={[{ value: "ACTIVE", label: "Activa" }, { value: "INACTIVE", label: "Inactiva" }]} className="h-11 w-full rounded-xl shadow-none" />
             </div>
+            <TextField label="Notas" value={companyForm.notes} onChange={(value) => setCompanyForm({ ...companyForm, notes: value })} className="md:col-span-2" />
+            <ModalActions onCancel={() => setIsCompanyModalOpen(false)} submitLabel={editingCompany ? "Guardar cambios" : "Crear compañía"} />
           </form>
         </Modal>
       ) : null}
@@ -428,9 +416,7 @@ export function CompanyManager() {
                   </tr>
                 </thead>
                 <tbody>
-                  {isContactsLoading ? (
-                    <LoadingRow colSpan={3} label="Cargando contactos..." />
-                  ) : contacts.length === 0 ? (
+                  {contacts.length === 0 ? (
                     <tr>
                       <td colSpan={3} className="px-3 py-8 text-center text-muted-foreground">
                         No hay contactos registrados.
@@ -442,30 +428,22 @@ export function CompanyManager() {
                         <td className="px-3 py-2">
                           <p className="font-bold">
                             {contact.firstName} {contact.lastName}
-                            {contact.isPrimary ? (
-                              <span className="ml-2 rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">Principal</span>
-                            ) : null}
+                            {contact.isPrimary ? <span className="ml-2 rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">Principal</span> : null}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {contact.position || "Sin cargo"} · {contact.email || "Sin correo"}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{contact.position || "Sin cargo"} · {contact.email || "Sin correo"}</p>
                         </td>
-                        <td className="px-3 py-2">
-                          <StatusPill tone={contact.status === "ACTIVE" ? "success" : "neutral"}>
-                            {contact.status === "ACTIVE" ? "Activo" : "Inactivo"}
-                          </StatusPill>
-                        </td>
+                        <td className="px-3 py-2">{contact.status === "ACTIVE" ? "Activo" : "Inactivo"}</td>
                         <td className="px-3 py-2">
                           <div className="flex justify-end gap-2">
                             {canUpdateContact ? (
-                              <ActionIconButton title="Editar" onClick={() => openEditContact(contact)}>
+                              <button type="button" onClick={() => openEditContact(contact)} className="rounded-md border border-border p-2 hover:bg-muted">
                                 <Edit className="h-4 w-4" />
-                              </ActionIconButton>
+                              </button>
                             ) : null}
                             {canDeleteContact ? (
-                              <ActionIconButton title="Eliminar" danger onClick={() => void handleDeleteContact(contact)}>
+                              <button type="button" onClick={() => handleDeleteContact(contact)} className="rounded-md border border-border p-2 text-destructive hover:bg-destructive/10">
                                 <Trash2 className="h-4 w-4" />
-                              </ActionIconButton>
+                              </button>
                             ) : null}
                           </div>
                         </td>
@@ -476,7 +454,7 @@ export function CompanyManager() {
               </table>
             </div>
 
-            {canCreateContact || editingContact ? (
+            {(canCreateContact || editingContact) ? (
               <form onSubmit={handleSaveContact} className="space-y-3 rounded-lg border border-border bg-background p-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-black">{editingContact ? "Editar contacto" : "Crear contacto"}</h3>
@@ -492,31 +470,121 @@ export function CompanyManager() {
                 <TextField label="Telefono" value={contactForm.phone} onChange={(value) => setContactForm({ ...contactForm, phone: value })} />
                 <TextField label="Cargo" value={contactForm.position} onChange={(value) => setContactForm({ ...contactForm, position: value })} />
                 <label className="flex items-center gap-2 text-sm font-bold">
-                  <input
-                    type="checkbox"
-                    checked={contactForm.isPrimary}
-                    onChange={(event) => setContactForm({ ...contactForm, isPrimary: event.target.checked })}
-                  />
+                  <input type="checkbox" checked={contactForm.isPrimary} onChange={(event) => setContactForm({ ...contactForm, isPrimary: event.target.checked })} />
                   Contacto principal
                 </label>
-                <select
-                  value={contactForm.status}
-                  onChange={(event) => setContactForm({ ...contactForm, status: event.target.value as CompanyStatus })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
+                <select value={contactForm.status} onChange={(event) => setContactForm({ ...contactForm, status: event.target.value as CompanyStatus })} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                   <option value="ACTIVE">Activo</option>
                   <option value="INACTIVE">Inactivo</option>
                 </select>
                 <TextField label="Notas" value={contactForm.notes} onChange={(value) => setContactForm({ ...contactForm, notes: value })} />
-                <PrimaryButton type="submit" disabled={isSaving} className="w-full">
-                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                <button type="submit" className="w-full rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">
                   {editingContact ? "Guardar contacto" : "Crear contacto"}
-                </PrimaryButton>
+                </button>
               </form>
             ) : null}
           </div>
         </Modal>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(companyToDelete)}
+        title="Eliminar compañía"
+        description={`¿Deseas eliminar “${companyToDelete?.name ?? ""}”? La compañía y su información dejarán de aparecer en la gestión operativa.`}
+        confirmLabel="Eliminar compañía"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDeleteCompany()}
+        onCancel={() => setCompanyToDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(contactToDelete)}
+        title="Eliminar contacto"
+        description={`¿Deseas eliminar a “${contactToDelete?.firstName ?? ""} ${contactToDelete?.lastName ?? ""}” de esta compañía?`}
+        confirmLabel="Eliminar contacto"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDeleteContact()}
+        onCancel={() => setContactToDelete(null)}
+      />
+    </div>
+  );
+}
+
+function Modal({
+  title,
+  subtitle,
+  children,
+  onClose,
+  wide = false
+}: Readonly<{
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  onClose: () => void;
+  wide?: boolean;
+}>) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/70 p-4 backdrop-blur-sm">
+      <section className={`max-h-[88dvh] w-full overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
+        <header className="flex items-center justify-between border-b border-border bg-muted/35 px-5 py-3">
+          <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Building2 className="h-5 w-5" /></span><div><h2 className="text-lg font-black">{title}</h2>{subtitle ? <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p> : null}</div></div>
+          <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Cerrar modal">
+            <X className="h-5 w-5" />
+          </button>
+        </header>
+        <div className="p-5">{children}</div>
+      </section>
+    </div>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  className = "",
+  placeholder
+}: Readonly<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  required?: boolean;
+  className?: string;
+  placeholder?: string;
+}>) {
+  return (
+    <label className={`space-y-2 ${className}`}>
+      <span className="text-sm font-bold">{label}{required ? <span className="ml-1 text-destructive">*</span> : null}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+        placeholder={placeholder}
+        className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition placeholder:text-muted-foreground/65 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+      />
+    </label>
+  );
+}
+
+function ModalActions({
+  onCancel,
+  submitLabel
+}: Readonly<{
+  onCancel: () => void;
+  submitLabel: string;
+}>) {
+  return (
+    <div className="mt-2 flex justify-end gap-2 border-t border-border pt-4 md:col-span-2">
+      <button type="button" onClick={onCancel} className="h-11 rounded-xl border border-border bg-card px-5 text-sm font-black hover:bg-muted">
+        Cancelar
+      </button>
+      <button type="submit" className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-black text-primary-foreground shadow-sm hover:bg-primary/90">
+        <Save className="mr-2 h-4 w-4" />{submitLabel}
+      </button>
     </div>
   );
 }

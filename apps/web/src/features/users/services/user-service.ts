@@ -25,6 +25,7 @@ function queryString(params: Record<string, string | number | undefined>) {
 export function listUsers(params: {
   q?: string;
   status?: UserStatus | "";
+  roleId?: string;
   page?: number;
   pageSize?: number;
 }) {

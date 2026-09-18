@@ -2,7 +2,7 @@
 
 import { apiRequest } from "@/lib/api-client";
 import { getStoredSession } from "@/features/auth/auth-service";
-import type { PaginatedPosts, Post, PostCategory, PostFormValues, PostStatus, PostTag, TaxonomyFormValues } from "../types/post.types";
+import type { BlogTaxonomy, PaginatedPosts, Post, PostFormValues, PostStatus, PublicPostsPage } from "../types/post.types";
 
 function getToken() {
   return getStoredSession()?.token ?? null;
@@ -25,8 +25,8 @@ export function listPosts(params: { q?: string; status?: PostStatus | ""; page?:
   });
 }
 
-export function listPublishedPosts() {
-  return apiRequest<Post[]>("/posts/public");
+export function listPublishedPosts(params: { q?: string; category?: string; tag?: string; page?: number; pageSize?: number } = {}) {
+  return apiRequest<PublicPostsPage>(`/posts/public${queryString(params)}`);
 }
 
 export function getPublishedPost(slug: string) {
@@ -37,7 +37,7 @@ export function createPost(values: PostFormValues) {
   return apiRequest<Post>("/posts", {
     method: "POST",
     token: getToken(),
-    body: sanitizePost(values)
+    body: values
   });
 }
 
@@ -45,19 +45,8 @@ export function updatePost(postId: string, values: PostFormValues) {
   return apiRequest<Post>(`/posts/${postId}`, {
     method: "PUT",
     token: getToken(),
-    body: sanitizePost(values)
+    body: values
   });
-}
-
-function sanitizePost(values: PostFormValues) {
-  return {
-    ...values,
-    title: values.title.trim(),
-    excerpt: values.excerpt.trim() || null,
-    content: values.content.trim(),
-    categoryId: values.categoryId || null,
-    coverImage: values.coverImage ?? null
-  };
 }
 
 export function deletePost(postId: string) {
@@ -67,60 +56,8 @@ export function deletePost(postId: string) {
   });
 }
 
-export function listPostCategories() {
-  return apiRequest<PostCategory[]>("/posts/categories", {
-    token: getToken()
-  });
-}
-
-export function createPostCategory(values: TaxonomyFormValues) {
-  return apiRequest<PostCategory>("/posts/categories", {
-    method: "POST",
-    token: getToken(),
-    body: values
-  });
-}
-
-export function updatePostCategory(categoryId: string, values: TaxonomyFormValues) {
-  return apiRequest<PostCategory>(`/posts/categories/${categoryId}`, {
-    method: "PUT",
-    token: getToken(),
-    body: values
-  });
-}
-
-export function deletePostCategory(categoryId: string) {
-  return apiRequest<{ id: string }>(`/posts/categories/${categoryId}`, {
-    method: "DELETE",
-    token: getToken()
-  });
-}
-
-export function listPostTags() {
-  return apiRequest<PostTag[]>("/posts/tags", {
-    token: getToken()
-  });
-}
-
-export function createPostTag(values: TaxonomyFormValues) {
-  return apiRequest<PostTag>("/posts/tags", {
-    method: "POST",
-    token: getToken(),
-    body: values
-  });
-}
-
-export function updatePostTag(tagId: string, values: TaxonomyFormValues) {
-  return apiRequest<PostTag>(`/posts/tags/${tagId}`, {
-    method: "PUT",
-    token: getToken(),
-    body: values
-  });
-}
-
-export function deletePostTag(tagId: string) {
-  return apiRequest<{ id: string }>(`/posts/tags/${tagId}`, {
-    method: "DELETE",
-    token: getToken()
-  });
-}
+type TaxonomyKind = "categories" | "tags";
+export function listTaxonomies(kind: TaxonomyKind) { return apiRequest<BlogTaxonomy[]>(`/posts/${kind}`, { token: getToken() }); }
+export function createTaxonomy(kind: TaxonomyKind, name: string) { return apiRequest<BlogTaxonomy>(`/posts/${kind}`, { method: "POST", token: getToken(), body: { name } }); }
+export function updateTaxonomy(kind: TaxonomyKind, id: string, name: string) { return apiRequest<BlogTaxonomy>(`/posts/${kind}/${id}`, { method: "PUT", token: getToken(), body: { name } }); }
+export function deleteTaxonomy(kind: TaxonomyKind, id: string) { return apiRequest<{ id: string }>(`/posts/${kind}/${id}`, { method: "DELETE", token: getToken() }); }

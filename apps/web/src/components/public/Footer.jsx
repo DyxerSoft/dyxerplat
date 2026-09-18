@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Facebook, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
 import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
 
-const assetSrc = (asset) => (typeof asset === 'string' ? asset : asset.src);
 const linkedInUrl = 'https://www.linkedin.com/company/dyxersoft';
 const facebookUrl = 'https://www.facebook.com/share/1KwhxcATJr/';
 
@@ -15,9 +15,9 @@ function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <img
-                src={assetSrc(logoDx)}
-                alt=""
+              <Image
+                src={logoDx}
+                alt="Isotipo de Dyxersoft"
                 className="h-12 w-12 rounded-lg border border-secondary/20 object-cover shadow-[0_0_22px_rgba(14,165,233,0.14)]"
               />
               <div>
@@ -83,7 +83,7 @@ function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Producto</h4>
             <div className="space-y-2">
-              <a href="#pigim" className="block text-sm text-muted-foreground transition-colors hover:text-primary">
+              <a href="#producto" className="block text-sm text-muted-foreground transition-colors hover:text-primary">
                 PIGIM
               </a>
               <a href="#servicios" className="block text-sm text-muted-foreground transition-colors hover:text-primary">

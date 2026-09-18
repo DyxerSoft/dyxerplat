@@ -11,13 +11,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Dyxersoft | Software a medida, SaaS, datos e IA en Bolivia",
-    template: "%s | Dyxersoft"
-  },
+  title: "Dyxersoft | Software a medida, SaaS, datos e IA en Bolivia",
   description:
-    "Dyxersoft desarrolla software a medida, plataformas SaaS, dashboards, automatizacion e inteligencia artificial para empresas que necesitan operar con control y datos confiables.",
-  applicationName: "Dyxersoft"
+    "Dyxersoft desarrolla software a medida, plataformas SaaS, dashboards, automatizacion e inteligencia artificial para empresas que necesitan operar con control y datos confiables."
 };
 
 export default function RootLayout({

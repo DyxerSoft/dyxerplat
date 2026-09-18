@@ -1,58 +1,30 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Edit, FileText, Loader2, Plus, Tags, Trash2 } from "lucide-react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Edit, FileText, FolderOpen, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { PERMISSIONS } from "@dyxerplat/shared";
-import {
-  ActionIconButton,
-  DataTable,
-  EmptyState,
-  EmptyPanel,
-  FilterBar,
-  LoadingRow,
-  Modal,
-  PageHeader,
-  PaginationBar,
-  PrimaryButton,
-  SearchInput,
-  SecondaryButton,
-  SelectField,
-  StatusPill,
-  TableHead,
-  TextField
-} from "@/components/platform/crm-ui";
-import { getErrorMessage, getSessionPermissions } from "@/lib/crm";
-import {
-  createPost,
-  createPostCategory,
-  createPostTag,
-  deletePost,
-  deletePostCategory,
-  deletePostTag,
-  listPostCategories,
-  listPosts,
-  listPostTags,
-  updatePost,
-  updatePostCategory,
-  updatePostTag
-} from "../services/post-service";
-import type { Post, PostCategory, PostFormValues, PostStatus, PostTag } from "../types/post.types";
+import { PERMISSIONS } from "@/lib/permissions";
+import { getUserFacingErrorMessage } from "@/lib/api-client";
+import { getStoredSession } from "@/features/auth/auth-service";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SelectField } from "@/components/ui/SelectField";
+import { createPost, deletePost, listPosts, listTaxonomies, updatePost } from "../services/post-service";
+import type { BlogTaxonomy, Post, PostFormValues, PostStatus } from "../types/post.types";
 
 const emptyForm: PostFormValues = {
   title: "",
   excerpt: "",
   content: "",
   status: "DRAFT",
+  coverImage: null,
   categoryId: "",
-  tagIds: [],
-  coverImage: null
+  tagIds: []
 };
 
-type Filters = {
-  q: string;
-  status: PostStatus | "";
-};
+function getErrorMessage(error: unknown) {
+  return getUserFacingErrorMessage(error);
+}
 
 async function fileToBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -65,46 +37,37 @@ async function fileToBase64(file: File) {
 
 export function PostManager() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [draftQ, setDraftQ] = useState("");
-  const [draftStatus, setDraftStatus] = useState<PostStatus | "">("");
-  const [filters, setFilters] = useState<Filters>({ q: "", status: "" });
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [status, setStatus] = useState<PostStatus | "">("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTaxonomyModalOpen, setIsTaxonomyModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostFormValues>(emptyForm);
-  const [categories, setCategories] = useState<PostCategory[]>([]);
-  const [tags, setTags] = useState<PostTag[]>([]);
-  const [editingCategory, setEditingCategory] = useState<PostCategory | null>(null);
-  const [editingTag, setEditingTag] = useState<PostTag | null>(null);
-  const [categoryName, setCategoryName] = useState("");
-  const [tagName, setTagName] = useState("");
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [categories, setCategories] = useState<BlogTaxonomy[]>([]);
+  const [tags, setTags] = useState<BlogTaxonomy[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const permissions = useMemo(() => getSessionPermissions(), []);
+  const permissions = useMemo(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+    return getStoredSession()?.user.permissions ?? [];
+  }, []);
+
   const canCreate = permissions.includes(PERMISSIONS.POSTS_CREATE);
   const canUpdate = permissions.includes(PERMISSIONS.POSTS_UPDATE);
   const canDelete = permissions.includes(PERMISSIONS.POSTS_DELETE);
-  const canManageTaxonomies = canCreate || canUpdate || canDelete;
 
-  const loadPosts = useCallback(async () => {
+  const loadPosts = async () => {
     setIsLoading(true);
     try {
-      const result = await listPosts({
-        q: filters.q,
-        status: filters.status,
-        page,
-        pageSize: 10
-      });
-
-      if (result.items.length === 0 && page > 1) {
-        setPage((current) => Math.max(1, current - 1));
-        return;
-      }
-
+      const result = await listPosts({ q: debouncedQ, status, page, pageSize: 10 });
       setPosts(result.items);
       setTotalPages(result.pagination.totalPages);
       setTotal(result.pagination.total);
@@ -113,35 +76,18 @@ export function PostManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, page]);
-
-  const loadTaxonomies = useCallback(async () => {
-    try {
-      const [categoriesResult, tagsResult] = await Promise.all([listPostCategories(), listPostTags()]);
-      setCategories(categoriesResult);
-      setTags(tagsResult);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-  }, []);
+  };
 
   useEffect(() => {
     void loadPosts();
-  }, [loadPosts]);
-
-  useEffect(() => {
-    void loadTaxonomies();
-  }, [loadTaxonomies]);
-
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPage(1);
-    setFilters({ q: draftQ.trim(), status: draftStatus });
-  };
+  }, [page, debouncedQ, status]);
+  useEffect(() => { const timeout = window.setTimeout(() => { setPage(1); setDebouncedQ(q); }, 300); return () => window.clearTimeout(timeout); }, [q]);
+  useEffect(() => { Promise.all([listTaxonomies("categories"), listTaxonomies("tags")]).then(([categoryItems, tagItems]) => { setCategories(categoryItems); setTags(tagItems); }).catch(() => undefined); }, []);
 
   const openCreate = () => {
     setEditingPost(null);
     setForm(emptyForm);
+    setImagePreview(null);
     setIsModalOpen(true);
   };
 
@@ -152,10 +98,11 @@ export function PostManager() {
       excerpt: post.excerpt ?? "",
       content: post.content,
       status: post.status,
+      coverImage: null,
       categoryId: post.category?.id ?? "",
-      tagIds: post.tags.map((tag) => tag.id),
-      coverImage: null
+      tagIds: post.tags.map((tag) => tag.id)
     });
+    setImagePreview(post.coverImageUrl);
     setIsModalOpen(true);
   };
 
@@ -164,26 +111,20 @@ export function PostManager() {
     if (!file) {
       return;
     }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("La imagen no puede superar 2MB.");
-      event.target.value = "";
-      return;
-    }
-
+    const dataBase64 = await fileToBase64(file);
+    setImagePreview(dataBase64);
     setForm({
       ...form,
       coverImage: {
         fileName: file.name,
         mimeType: file.type,
-        dataBase64: await fileToBase64(file)
+        dataBase64
       }
     });
   };
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSaving(true);
     try {
       if (editingPost) {
         await updatePost(editingPost.id, form);
@@ -196,366 +137,154 @@ export function PostManager() {
       await loadPosts();
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const toggleTag = (tagId: string) => {
-    setForm((current) => ({
-      ...current,
-      tagIds: current.tagIds.includes(tagId)
-        ? current.tagIds.filter((id) => id !== tagId)
-        : [...current.tagIds, tagId]
-    }));
-  };
-
-  const openTaxonomies = () => {
-    setEditingCategory(null);
-    setEditingTag(null);
-    setCategoryName("");
-    setTagName("");
-    setIsTaxonomyModalOpen(true);
-  };
-
-  const handleSaveCategory = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSaving(true);
-    try {
-      if (editingCategory) {
-        await updatePostCategory(editingCategory.id, { name: categoryName });
-        toast.success("Categoria actualizada correctamente.");
-      } else {
-        await createPostCategory({ name: categoryName });
-        toast.success("Categoria creada correctamente.");
-      }
-      setEditingCategory(null);
-      setCategoryName("");
-      await loadTaxonomies();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSaveTag = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSaving(true);
-    try {
-      if (editingTag) {
-        await updatePostTag(editingTag.id, { name: tagName });
-        toast.success("Etiqueta actualizada correctamente.");
-      } else {
-        await createPostTag({ name: tagName });
-        toast.success("Etiqueta creada correctamente.");
-      }
-      setEditingTag(null);
-      setTagName("");
-      await loadTaxonomies();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteCategory = async (category: PostCategory) => {
-    if (!window.confirm(`Eliminar la categoria ${category.name}? Esta accion sera logica.`)) {
-      return;
-    }
-
-    try {
-      await deletePostCategory(category.id);
-      toast.success("Categoria eliminada correctamente.");
-      await loadTaxonomies();
-      await loadPosts();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-  };
-
-  const handleDeleteTag = async (tag: PostTag) => {
-    if (!window.confirm(`Eliminar la etiqueta ${tag.name}? Esta accion sera logica.`)) {
-      return;
-    }
-
-    try {
-      await deletePostTag(tag.id);
-      toast.success("Etiqueta eliminada correctamente.");
-      await loadTaxonomies();
-      await loadPosts();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
     }
   };
 
   const handleDelete = async (post: Post) => {
-    if (!window.confirm(`Eliminar la publicacion "${post.title}"? Esta accion sera logica.`)) {
-      return;
-    }
+    setPostToDelete(post);
+  };
 
+  const confirmDelete = async () => {
+    if (!postToDelete) return;
+    setIsDeleting(true);
     try {
-      await deletePost(post.id);
+      await deletePost(postToDelete.id);
       toast.success("Publicacion eliminada correctamente.");
+      setPostToDelete(null);
       await loadPosts();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        eyebrow="Blog"
-        title="Publicaciones"
-        description="Crea y publica contenido para el blog publico."
-        actions={
-          <>
-            {canManageTaxonomies ? (
-              <SecondaryButton onClick={openTaxonomies}>
-                <Tags className="mr-2 h-4 w-4" />
-                Categorias y tags
-              </SecondaryButton>
-            ) : null}
-            {canCreate ? (
-              <PrimaryButton onClick={openCreate}>
-                <Plus className="mr-2 h-4 w-4" />
-                Crear publicacion
-              </PrimaryButton>
-            ) : null}
-          </>
-        }
-      >
-        <FilterBar onSubmit={handleSearch}>
-          <SearchInput value={draftQ} onChange={setDraftQ} placeholder="Buscar publicaciones..." />
-          <SelectField value={draftStatus} onChange={(value) => setDraftStatus(value as PostStatus | "")}>
-            <option value="">Todos</option>
-            <option value="DRAFT">Borrador</option>
-            <option value="PUBLISHED">Publicado</option>
-            <option value="ARCHIVED">Archivado</option>
-          </SelectField>
-          <SecondaryButton type="submit">Filtrar</SecondaryButton>
-        </FilterBar>
-      </PageHeader>
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm lg:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">Blog</p>
+            <div className="mt-2 flex items-center gap-3"><h1 className="text-3xl font-black">Publicaciones</h1><span className="rounded-full bg-muted px-3 py-1 text-xs font-black text-muted-foreground">{total} registradas</span></div>
+            <p className="mt-2 text-sm text-muted-foreground">Crea y publica contenido para el blog público.</p>
+          </div>
+          {canCreate ? (
+            <button type="button" onClick={openCreate} className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-black text-primary-foreground hover:bg-primary/90">
+              <Plus className="mr-2 h-4 w-4" />
+              Crear publicación
+            </button>
+          ) : null}
+        </div>
 
-      {!isLoading && posts.length === 0 ? (
-        <EmptyPanel>
-          <EmptyState
-            icon={FileText}
-            title={filters.q || filters.status ? "Sin resultados" : "No hay publicaciones"}
-            description={
-              filters.q || filters.status
-                ? "Prueba con otros filtros o limpia la busqueda."
-                : "Crea la primera publicacion del blog."
-            }
-            action={
-              canCreate && !filters.q && !filters.status ? (
-                <PrimaryButton onClick={openCreate}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear publicacion
-                </PrimaryButton>
-              ) : null
-            }
-          />
-        </EmptyPanel>
-      ) : (
-        <DataTable
-          minWidth="820px"
-          footer={
-            <PaginationBar
-              page={page}
-              totalPages={totalPages}
-              total={total}
-              onPrevious={() => setPage((value) => Math.max(1, value - 1))}
-              onNext={() => setPage((value) => Math.min(totalPages, value + 1))}
-            />
-          }
-        >
-          <TableHead
-            columns={[
-              { label: "Publicacion" },
-              { label: "Estado" },
-              { label: "Autor" },
-              { label: "Acciones", align: "right" }
-            ]}
-          />
+        <div className="mt-6 max-w-full overflow-x-auto pb-1"><div className="inline-flex w-max items-center gap-3">
+          <div className="relative shrink-0" style={{ width: 500, minWidth: 500 }}>
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input value={q} onChange={(event) => setQ(event.target.value)} style={{ paddingLeft: "3rem" }} className="h-11 w-full rounded-lg border border-secondary/30 bg-background pr-4 text-base outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/15" placeholder="Buscar publicaciones..." />
+          </div>
+          <SelectField ariaLabel="Filtrar por estado" value={status} onValueChange={(value) => { setStatus(value as PostStatus | ""); setPage(1); }} options={[{ value: "", label: "Todos los estados" }, { value: "DRAFT", label: "Borradores" }, { value: "PUBLISHED", label: "Publicadas" }, { value: "ARCHIVED", label: "Archivadas" }]} className="h-11 w-[190px] bg-muted/60 shadow-none" />
+          <Link href="/posts/categories" className="inline-flex h-11 items-center rounded-xl border border-border px-4 text-sm font-bold hover:bg-muted"><FolderOpen className="mr-2 h-4 w-4 text-secondary" />Categorías</Link>
+          <Link href="/posts/tags" className="inline-flex h-11 items-center rounded-xl border border-border px-4 text-sm font-bold hover:bg-muted"><Tag className="mr-2 h-4 w-4 text-secondary" />Tags</Link>
+        </div></div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <table className="w-full min-w-[820px] text-sm">
+          <thead className="bg-muted/70 text-center text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Publicación</th>
+              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3">Autor</th>
+              <th className="px-4 py-3">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             {isLoading ? (
-              <LoadingRow colSpan={4} label="Cargando publicaciones..." />
+              <tr><td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">Cargando publicaciones...</td></tr>
+            ) : posts.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center">
+                  <FileText className="mx-auto mb-3 h-8 w-8 text-secondary" />
+                  <p className="font-bold">No hay publicaciones</p>
+                  <p className="mt-1 text-muted-foreground">Crea la primera publicacion del blog.</p>
+                </td>
+              </tr>
             ) : (
               posts.map((post) => (
-                <tr key={post.id} className="border-t border-border transition hover:bg-muted/30">
-                  <td className="px-4 py-3">
+                <tr key={post.id} className="border-t border-border text-center hover:bg-muted/35">
+                  <td className="px-4 py-3 text-center">
                     <p className="font-bold">{post.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      /{post.slug}
-                      {post.category ? ` · ${post.category.name}` : ""}
-                    </p>
+                    <p className="text-xs text-muted-foreground">/{post.slug}</p>
                   </td>
+                  <td className="px-4 py-3">{statusLabel(post.status)}</td>
+                  <td className="px-4 py-3">{post.author.firstName} {post.author.lastName}</td>
                   <td className="px-4 py-3">
-                    <StatusPill tone={postStatusTone(post.status)}>{statusLabel(post.status)}</StatusPill>
-                  </td>
-                  <td className="px-4 py-3">
-                    {post.author.firstName} {post.author.lastName}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      {canUpdate ? (
-                        <ActionIconButton title="Editar" onClick={() => openEdit(post)}>
-                          <Edit className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
-                      {canDelete ? (
-                        <ActionIconButton title="Eliminar" danger onClick={() => void handleDelete(post)}>
-                          <Trash2 className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
+                    <div className="flex justify-center gap-2">
+                      {canUpdate ? <button type="button" onClick={() => openEdit(post)} className="rounded-md border border-border p-2 hover:bg-muted"><Edit className="h-4 w-4" /></button> : null}
+                      {canDelete ? <button type="button" onClick={() => handleDelete(post)} className="rounded-md border border-border p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button> : null}
                     </div>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
-        </DataTable>
-      )}
+        </table>
+        <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm">
+          <span className="text-muted-foreground">Pagina {page} de {totalPages}</span>
+          <div className="flex gap-2">
+            <button disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-md border border-border px-3 py-1 font-bold disabled:opacity-50">Anterior</button>
+            <button disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="rounded-md border border-border px-3 py-1 font-bold disabled:opacity-50">Siguiente</button>
+          </div>
+        </div>
+      </section>
 
       {isModalOpen ? (
-        <Modal title={editingPost ? "Editar publicacion" : "Crear publicacion"} onClose={() => setIsModalOpen(false)} wide>
-          <form onSubmit={handleSave} className="space-y-4">
-            <TextField label="Titulo *" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
-            <TextField label="Resumen" value={form.excerpt} onChange={(value) => setForm({ ...form, excerpt: value })} />
-            <label className="block space-y-1">
-              <span className="text-sm font-bold">Contenido *</span>
-              <textarea
-                value={form.content}
-                onChange={(event) => setForm({ ...form, content: event.target.value })}
-                required
-                rows={8}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-            </label>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <label className="space-y-1">
-                <span className="text-sm font-bold">Estado</span>
-                <select
-                  value={form.status}
-                  onChange={(event) => setForm({ ...form, status: event.target.value as PostStatus })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="DRAFT">Borrador</option>
-                  <option value="PUBLISHED">Publicado</option>
-                  <option value="ARCHIVED">Archivado</option>
-                </select>
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/70 p-4 backdrop-blur-sm">
+          <section className="max-h-[88dvh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+            <header className="flex items-center justify-between border-b border-border bg-muted/35 px-5 py-3">
+              <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><FileText className="h-5 w-5" /></span><div><h2 className="text-lg font-black">{editingPost ? "Editar publicación" : "Crear publicación"}</h2><p className="text-xs text-muted-foreground">Contenido que podrá mostrarse en el blog público.</p></div></div>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 text-muted-foreground"><X className="h-5 w-5" /></button>
+            </header>
+            <form onSubmit={handleSave} className="space-y-4 p-5">
+              <TextField label="Título" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
+              <TextField label="Resumen" value={form.excerpt} onChange={(value) => setForm({ ...form, excerpt: value })} />
+              <label className="space-y-1 block">
+                <span className="text-sm font-bold">Contenido *</span>
+                <textarea value={form.content} onChange={(event) => setForm({ ...form, content: event.target.value })} required rows={8} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
               </label>
-              <label className="space-y-1">
-                <span className="text-sm font-bold">Imagen de portada</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImage}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                />
-                {form.coverImage ? (
-                  <p className="text-xs text-muted-foreground">Nueva imagen: {form.coverImage.fileName}</p>
-                ) : editingPost?.coverImageUrl ? (
-                  <p className="text-xs text-muted-foreground">Se mantendra la imagen actual si no subes otra.</p>
-                ) : null}
-              </label>
-            </div>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-[260px_1fr]">
-              <label className="space-y-1">
-                <span className="text-sm font-bold">Categoria</span>
-                <select
-                  value={form.categoryId ?? ""}
-                  onChange={(event) => setForm({ ...form, categoryId: event.target.value || null })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">Sin categoria</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="space-y-2">
-                <p className="text-sm font-bold">Tags</p>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {tags.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No hay tags creados.</p>
-                  ) : (
-                    tags.map((tag) => (
-                      <label key={tag.id} className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
-                        <input type="checkbox" checked={form.tagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
-                        {tag.name}
-                      </label>
-                    ))
-                  )}
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <span className="text-sm font-bold">Estado</span>
+                  <SelectField ariaLabel="Estado de la publicación" value={form.status} onValueChange={(value) => setForm({ ...form, status: value as PostStatus })} options={[{ value: "DRAFT", label: "Borrador" }, { value: "PUBLISHED", label: "Publicado" }, { value: "ARCHIVED", label: "Archivado" }]} className="h-11" />
                 </div>
+                <label className="space-y-1">
+                  <span className="text-sm font-bold">Imagen de portada</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImage} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-1 file:font-bold file:text-foreground" />
+                  <p className="text-xs text-muted-foreground">JPG, PNG o WEBP. Máximo 2 MB. Selecciona otra imagen únicamente si deseas reemplazar la actual.</p>
+                </label>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <SecondaryButton onClick={() => setIsModalOpen(false)} disabled={isSaving}>
-                Cancelar
-              </SecondaryButton>
-              <PrimaryButton type="submit" disabled={isSaving}>
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {editingPost ? "Guardar cambios" : "Crear publicacion"}
-              </PrimaryButton>
-            </div>
-          </form>
-        </Modal>
+              {imagePreview ? <div className="flex w-fit max-w-full items-center gap-3 rounded-xl border border-border bg-background p-2"><img src={imagePreview} alt="Vista previa de la portada" className="h-16 w-24 shrink-0 rounded-lg object-cover" /><div className="pr-2 text-xs text-muted-foreground"><span className="block whitespace-nowrap">{form.coverImage ? "Nueva portada seleccionada" : "Portada guardada"}</span>{form.coverImage ? <button type="button" onClick={() => { setForm({ ...form, coverImage: null }); setImagePreview(editingPost?.coverImageUrl ?? null); }} className="mt-1 font-bold text-destructive">Descartar cambio</button> : null}</div></div> : null}
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-2"><span className="text-sm font-bold">Categoría</span><SelectField ariaLabel="Categoría de la publicación" value={form.categoryId} onValueChange={(value) => setForm({ ...form, categoryId: value })} options={[{ value: "", label: "Sin categoría" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} className="h-11" /></div>
+                <div><span className="text-sm font-bold">Tags</span><div className="mt-2 flex min-h-11 flex-wrap gap-2 rounded-xl border border-input bg-background p-2">{tags.length ? tags.map((tag) => { const selected = form.tagIds.includes(tag.id); return <button key={tag.id} type="button" onClick={() => setForm({ ...form, tagIds: selected ? form.tagIds.filter((id) => id !== tag.id) : [...form.tagIds, tag.id] })} className={`rounded-full border px-3 py-1 text-xs font-bold transition ${selected ? "border-secondary bg-secondary/15 text-secondary" : "border-border text-muted-foreground hover:bg-muted"}`}>{tag.name}</button>; }) : <span className="px-1 py-1 text-xs text-muted-foreground">No hay tags creados.</span>}</div></div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="h-11 rounded-xl border border-border px-5 text-sm font-bold hover:bg-muted">Cancelar</button>
+                <button type="submit" className="h-11 rounded-xl bg-primary px-5 text-sm font-black text-primary-foreground hover:bg-primary/90">{editingPost ? "Guardar cambios" : "Crear publicación"}</button>
+              </div>
+            </form>
+          </section>
+        </div>
       ) : null}
 
-      {isTaxonomyModalOpen ? (
-        <Modal title="Categorias y tags" onClose={() => setIsTaxonomyModalOpen(false)} wide>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <TaxonomyPanel
-              title="Categorias"
-              items={categories}
-              value={categoryName}
-              setValue={setCategoryName}
-              editingName={editingCategory?.name ?? null}
-              onSubmit={handleSaveCategory}
-              onEdit={(category) => {
-                setEditingCategory(category);
-                setCategoryName(category.name);
-              }}
-              onCancelEdit={() => {
-                setEditingCategory(null);
-                setCategoryName("");
-              }}
-              onDelete={handleDeleteCategory}
-              canCreate={canCreate}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              isSaving={isSaving}
-            />
-            <TaxonomyPanel
-              title="Tags"
-              items={tags}
-              value={tagName}
-              setValue={setTagName}
-              editingName={editingTag?.name ?? null}
-              onSubmit={handleSaveTag}
-              onEdit={(tag) => {
-                setEditingTag(tag);
-                setTagName(tag.name);
-              }}
-              onCancelEdit={() => {
-                setEditingTag(null);
-                setTagName("");
-              }}
-              onDelete={handleDeleteTag}
-              canCreate={canCreate}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              isSaving={isSaving}
-            />
-          </div>
-        </Modal>
-      ) : null}
+      <ConfirmDialog
+        open={Boolean(postToDelete)}
+        title="Eliminar publicación"
+        description={`¿Deseas eliminar “${postToDelete?.title ?? ""}”? Dejará de mostrarse en la administración y en el blog público.`}
+        confirmLabel="Eliminar publicación"
+        isLoading={isDeleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setPostToDelete(null)}
+      />
     </div>
   );
 }
@@ -569,112 +298,21 @@ function statusLabel(status: PostStatus) {
   return labels[status];
 }
 
-function postStatusTone(status: PostStatus): "success" | "neutral" | "warning" {
-  if (status === "PUBLISHED") return "success";
-  if (status === "DRAFT") return "warning";
-  return "neutral";
-}
-
-function TaxonomyPanel<TItem extends { id: string; name: string; slug: string; postsCount: number }>({
-  title,
-  items,
+function TextField({
+  label,
   value,
-  setValue,
-  editingName,
-  onSubmit,
-  onEdit,
-  onCancelEdit,
-  onDelete,
-  canCreate,
-  canUpdate,
-  canDelete,
-  isSaving
+  onChange,
+  required = false
 }: Readonly<{
-  title: string;
-  items: TItem[];
+  label: string;
   value: string;
-  setValue: (value: string) => void;
-  editingName: string | null;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onEdit: (item: TItem) => void;
-  onCancelEdit: () => void;
-  onDelete: (item: TItem) => void;
-  canCreate: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-  isSaving: boolean;
+  onChange: (value: string) => void;
+  required?: boolean;
 }>) {
   return (
-    <section className="space-y-4 rounded-lg border border-border p-4">
-      <div>
-        <h3 className="text-lg font-black">{title}</h3>
-        <p className="text-sm text-muted-foreground">{items.length} registros activos</p>
-      </div>
-
-      {canCreate || editingName ? (
-        <form onSubmit={onSubmit} className="flex gap-2">
-          <input
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            required
-            placeholder="Nombre"
-            className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
-          {editingName ? (
-            <SecondaryButton type="button" onClick={onCancelEdit} disabled={isSaving}>
-              Cancelar
-            </SecondaryButton>
-          ) : null}
-          <PrimaryButton type="submit" disabled={isSaving}>
-            {editingName ? "Guardar" : "Crear"}
-          </PrimaryButton>
-        </form>
-      ) : null}
-
-      <div className="overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/70 text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Nombre</th>
-              <th className="px-3 py-2">Posts</th>
-              <th className="px-3 py-2 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="px-3 py-8 text-center text-muted-foreground">
-                  No hay registros.
-                </td>
-              </tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id} className="border-t border-border">
-                  <td className="px-3 py-2">
-                    <p className="font-bold">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">/{item.slug}</p>
-                  </td>
-                  <td className="px-3 py-2">{item.postsCount}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex justify-end gap-2">
-                      {canUpdate ? (
-                        <ActionIconButton title="Editar" onClick={() => onEdit(item)}>
-                          <Edit className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
-                      {canDelete ? (
-                        <ActionIconButton title="Eliminar" danger onClick={() => onDelete(item)}>
-                          <Trash2 className="h-4 w-4" />
-                        </ActionIconButton>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <label className="space-y-1 block">
+      <span className="text-sm font-bold">{label}</span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} required={required} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+    </label>
   );
 }

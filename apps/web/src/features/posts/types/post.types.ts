@@ -1,23 +1,5 @@
 export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
-export type PostCategory = {
-  id: string;
-  name: string;
-  slug: string;
-  postsCount: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type PostTag = {
-  id: string;
-  name: string;
-  slug: string;
-  postsCount: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type Post = {
   id: string;
   title: string;
@@ -27,8 +9,8 @@ export type Post = {
   status: PostStatus;
   coverImageId: string | null;
   coverImageUrl: string | null;
-  category: Pick<PostCategory, "id" | "name" | "slug"> | null;
-  tags: Array<Pick<PostTag, "id" | "name" | "slug">>;
+  category: BlogTaxonomy | null;
+  tags: BlogTaxonomy[];
   author: {
     id: string;
     firstName: string;
@@ -44,18 +26,17 @@ export type PostFormValues = {
   excerpt: string;
   content: string;
   status: PostStatus;
-  categoryId?: string | null;
-  tagIds: string[];
   coverImage?: {
     fileName: string;
     mimeType: string;
     dataBase64: string;
   } | null;
+  categoryId: string;
+  tagIds: string[];
 };
 
-export type TaxonomyFormValues = {
-  name: string;
-};
+export type BlogTaxonomy = { id: string; name: string; slug: string; _count?: { posts: number } };
+export type PublicPostsPage = PaginatedPosts & { filters: { categories: BlogTaxonomy[]; tags: BlogTaxonomy[] } };
 
 export type PaginatedPosts = {
   items: Post[];

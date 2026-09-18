@@ -1,58 +1,90 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BarChart3, CheckCircle2, ShieldCheck, Workflow } from "lucide-react";
 import { LoginForm } from "@/features/auth/LoginForm";
+import logoDx from "@/assets/dyxersoft-logo-dx-v2.png";
+
+const platformBenefits = [
+  { icon: Workflow, text: "Operación centralizada y fácil de seguir" },
+  { icon: ShieldCheck, text: "Acceso protegido por roles y permisos" },
+  { icon: BarChart3, text: "Indicadores disponibles para decidir mejor" },
+];
 
 export default function LoginPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)/0.18),_transparent_55%),radial-gradient(ellipse_at_bottom_right,_hsl(var(--secondary)/0.14),_transparent_45%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(hsl(var(--border)/0.35)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.35)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-24 top-24 h-64 w-64 rounded-full bg-secondary/10 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-16 bottom-16 h-72 w-72 rounded-full bg-primary/15 blur-3xl"
-      />
+      <div className="grid min-h-screen lg:grid-cols-[0.92fr_1.08fr]">
+        <aside className="dark-cta relative hidden overflow-hidden border-r border-secondary/15 px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between xl:px-16">
+          <div className="pointer-events-none absolute inset-0 cyber-grid opacity-20" aria-hidden="true" />
+          <div className="relative">
+            <Link href="/" className="inline-flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+              <Image src={logoDx} alt="Isotipo de Dyxersoft" className="h-11 w-11 rounded-xl object-cover" priority />
+              <span>
+                <span className="block text-xl font-black tracking-tight">Dyxersoft</span>
+                <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Software empresarial</span>
+              </span>
+            </Link>
+          </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col px-4 py-8 sm:px-6">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-2 rounded-md border border-border/80 bg-card/60 px-3 py-2 text-sm font-semibold text-muted-foreground backdrop-blur transition hover:border-secondary/40 hover:bg-card hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al inicio
-        </Link>
+          <div className="relative max-w-xl py-16">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm font-bold text-cyan-300">
+              <span className="h-2 w-2 rounded-full bg-cyan-300" />
+              Plataforma interna
+            </div>
+            <h1 className="text-4xl font-black leading-[1.08] tracking-[-0.035em] xl:text-5xl">
+              Tu operación, organizada en un solo lugar
+            </h1>
+            <p className="mt-6 text-lg leading-8 text-blue-100/75">
+              Ingresa para gestionar incidencias, clientes, publicaciones, usuarios y permisos desde Dyxerplat.
+            </p>
 
-        <div className="flex flex-1 flex-col items-center justify-center py-10">
-          <section className="login-panel w-full max-w-md rounded-2xl border border-border/80 bg-card/85 p-7 shadow-[0_24px_80px_-32px_hsl(var(--primary)/0.55)] backdrop-blur-md sm:p-8">
-            <div className="mb-7 text-center">
-              <div className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-sm font-black text-primary-foreground shadow-lg shadow-primary/25">
-                Dx
-              </div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-secondary">Dyxerplat</p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-                Bienvenido de nuevo
-              </h1>
-              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-                Accede a la plataforma interna para gestionar companias, contenido y usuarios.
-              </p>
+            <div className="mt-10 space-y-5">
+              {platformBenefits.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-4 text-sm font-semibold text-blue-50/85">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/15 bg-cyan-300/10 text-cyan-300">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  {text}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="relative flex items-center gap-2 text-xs font-semibold text-blue-100/60">
+            <CheckCircle2 className="h-4 w-4 text-cyan-300" /> Acceso exclusivo para usuarios autorizados
+          </p>
+        </aside>
+
+        <section className="relative flex min-h-screen items-center justify-center px-4 py-10 sm:px-8 lg:px-12">
+          <div className="pointer-events-none absolute inset-0 blue-hero opacity-70" aria-hidden="true" />
+          <div className="relative w-full max-w-md">
+            <div className="mb-8 flex items-center justify-between lg:justify-start">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition-colors hover:text-primary"
+              >
+                <ArrowLeft className="h-4 w-4" /> Volver al inicio
+              </Link>
+              <Link href="/" className="flex items-center gap-2 lg:hidden" aria-label="Dyxersoft">
+                <Image src={logoDx} alt="" className="h-9 w-9 rounded-lg object-cover" />
+                <span className="font-black text-foreground">Dyxersoft</span>
+              </Link>
             </div>
 
-            <LoginForm />
-          </section>
+            <div className="rounded-2xl border border-border bg-card/95 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-secondary">Bienvenido de nuevo</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-foreground sm:text-4xl">Inicia sesión</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Utiliza las credenciales asignadas a tu cuenta para continuar.
+              </p>
+              <LoginForm />
+            </div>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Plataforma CRM de <span className="font-semibold text-foreground/80">Dyxersoft</span>
-          </p>
-        </div>
+            <p className="mx-auto mt-6 text-center text-xs leading-5 text-muted-foreground">
+              Si no tienes acceso o no recuerdas tus credenciales, comunícate con el administrador de tu organización.
+            </p>
+          </div>
+        </section>
       </div>
     </main>
   );
