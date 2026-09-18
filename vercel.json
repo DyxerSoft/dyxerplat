@@ -3,16 +3,5 @@
   "framework": "nextjs",
   "installCommand": "yarn install --frozen-lockfile",
   "buildCommand": "yarn vercel-build",
-  "outputDirectory": "apps/web/.next",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "node_modules/.prisma/client/**"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "/api/index"
-    }
-  ]
+  "outputDirectory": "apps/.next"
 }

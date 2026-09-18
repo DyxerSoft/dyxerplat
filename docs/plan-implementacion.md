@@ -7,7 +7,7 @@ Convertir Dyxerplat en una plataforma con landing publica, blog y CRM interno pa
 ## Arquitectura
 
 - Monorepo con Yarn workspaces.
-- `apps/web`: Next.js (App Router) con UI y Route Handlers `/api/v1`.
+- `apps`: Next.js (App Router) con UI y Route Handlers `/api/v1`.
 - `packages/shared`: constantes compartidas de roles, permisos y contratos simples.
 - `prisma`: esquema, migraciones y seed de datos base.
 - `docker-compose.yml`: PostgreSQL local para desarrollo.
