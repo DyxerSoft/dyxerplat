@@ -23,9 +23,5 @@ export type RoleFormValues = {
   code: string;
   description: string;
   permissionCodes: string[];
-};
-
-export type RolesPage = {
-  items: Role[];
-  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+  grantAllPermissions?: boolean;
 };
