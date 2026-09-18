@@ -4,7 +4,7 @@ type CacheEntry<T> = {
 };
 
 const store = new Map<string, CacheEntry<unknown>>();
-const DEFAULT_TTL_MS = 45_000;
+const DEFAULT_TTL_MS = 120_000;
 
 export function readListCache<T>(key: string, maxAgeMs = DEFAULT_TTL_MS): T | null {
   const entry = store.get(key) as CacheEntry<T> | undefined;

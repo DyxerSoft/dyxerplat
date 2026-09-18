@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -54,6 +54,18 @@ function ContactForm() {
 
   const servicioValue = watch('servicio');
   const inputClass = 'border-border bg-background/55 text-foreground placeholder:text-muted-foreground';
+
+  useEffect(() => {
+    try {
+      const preferredService = sessionStorage.getItem('dyxersoft_contact_servicio');
+      if (preferredService) {
+        setValue('servicio', preferredService, { shouldValidate: true });
+        sessionStorage.removeItem('dyxersoft_contact_servicio');
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);

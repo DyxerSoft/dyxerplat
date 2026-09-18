@@ -76,6 +76,15 @@ function HomePage() {
     }
   };
 
+  const goToDemoForm = () => {
+    try {
+      sessionStorage.setItem('dyxersoft_contact_servicio', 'demo-pigim');
+    } catch {
+      // ignore storage errors
+    }
+    scrollTo('#contacto');
+  };
+
   const painPoints = [
     {
       icon: MessageSquare,
@@ -312,13 +321,11 @@ function HomePage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   size="lg"
-                  asChild
                   className="bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
+                  onClick={goToDemoForm}
                 >
-                  <a href={PIGIM_APP_URL} target="_blank" rel="noopener noreferrer">
-                    Solicitar demo de PIGIM
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </a>
+                  Solicitar demo de PIGIM
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button
                   size="lg"
@@ -770,10 +777,12 @@ function HomePage() {
                 Centraliza, automatiza y convierte cada caso atendido en datos utiles para mejorar la operacion.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <a href={PIGIM_APP_URL} target="_blank" rel="noopener noreferrer">
-                    Solicitar demo ahora
-                  </a>
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={goToDemoForm}
+                >
+                  Solicitar demo ahora
                 </Button>
                 <Button
                   size="lg"

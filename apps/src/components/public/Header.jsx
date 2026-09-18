@@ -8,7 +8,6 @@ import { ArrowRight, Menu, Moon, Sun } from 'lucide-react';
 import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
 
 const assetSrc = (asset) => (typeof asset === 'string' ? asset : asset.src);
-const PIGIM_APP_URL = 'https://pigim-frontend.onrender.com';
 
 function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -52,6 +51,15 @@ function Header() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const goToDemoForm = () => {
+    try {
+      sessionStorage.setItem('dyxersoft_contact_servicio', 'demo-pigim');
+    } catch {
+      // ignore storage errors
+    }
+    handleNavClick('#contacto');
   };
 
   const toggleTheme = () => {
@@ -117,13 +125,11 @@ function Header() {
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             <Button
-              asChild
               className="bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
+              onClick={goToDemoForm}
             >
-              <a href={PIGIM_APP_URL} target="_blank" rel="noopener noreferrer">
-                Solicitar demo
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+              Solicitar demo
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
 
@@ -158,12 +164,10 @@ function Header() {
                   {isDark ? 'Tema claro' : 'Tema oscuro'}
                 </Button>
                 <Button
-                  asChild
                   className="mt-4 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
+                  onClick={goToDemoForm}
                 >
-                  <a href={PIGIM_APP_URL} target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)}>
-                    Solicitar demo
-                  </a>
+                  Solicitar demo
                 </Button>
               </nav>
             </SheetContent>

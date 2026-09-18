@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import { Building2, Inbox, LayoutDashboard, LogOut, Moon, Newspaper, Shield, Sun, Users } from "lucide-react";
 import { clearSession, getCurrentUser, getStoredSession, saveSession } from "@/features/auth/auth-service";
 import type { AuthSession } from "@/features/auth/types";
+import { warmCrmCache } from "@/lib/warm-crm-cache";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,6 +35,12 @@ export function PlatformShell({
   }, []);
 
   useEffect(() => {
+    navigation.forEach((item) => {
+      router.prefetch(item.href);
+    });
+  }, [router]);
+
+  useEffect(() => {
     const storedSession = getStoredSession();
 
     if (!storedSession) {
@@ -45,6 +52,7 @@ export function PlatformShell({
 
     setSession(storedSession);
     setIsReady(true);
+    warmCrmCache(storedSession.token);
 
     let cancelled = false;
 
