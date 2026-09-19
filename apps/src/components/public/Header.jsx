@@ -16,19 +16,16 @@ function Header() {
   const isDark = theme !== 'light';
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navLinks = [
     { name: 'Inicio', href: '#' },
-    { name: 'PIGIM', href: '#pigim' },
+    { name: 'Productos', href: '#productos' },
     { name: 'Servicios', href: '#servicios' },
-    { name: 'Proyectos', href: '#proyectos' },
-    { name: 'Beneficios', href: '#beneficios' },
+    { name: 'Soluciones', href: '#capacidades' },
     { name: 'Blog', href: '/blog' },
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Contacto', href: '#contacto' },
@@ -41,30 +38,14 @@ function Header() {
       window.location.href = href;
       return;
     }
-
     if (href === '#') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const goToDemoForm = () => {
-    try {
-      sessionStorage.setItem('dyxersoft_contact_servicio', 'demo-pigim');
-    } catch {
-      // ignore storage errors
-    }
-    handleNavClick('#contacto');
-  };
-
-  const toggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark');
-  };
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   return (
     <header
@@ -92,11 +73,11 @@ function Header() {
             />
             <span className="flex flex-col leading-none">
               <span className="text-lg font-bold tracking-wide text-foreground">Dyxersoft</span>
-              <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">PIGIM</span>
+              <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">Software, datos e IA</span>
             </span>
           </a>
 
-          <nav className="hidden items-center space-x-7 md:flex">
+          <nav className="hidden items-center space-x-4 lg:space-x-6 xl:space-x-7 xl:flex" aria-label="Navegación principal">
             {navLinks.map((link) => (
               <a
                 key={link.name}
@@ -105,14 +86,14 @@ function Header() {
                   event.preventDefault();
                   handleNavClick(link.href);
                 }}
-                className="rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="rounded-md px-1 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {link.name}
               </a>
             ))}
           </nav>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 xl:flex">
             <Button
               type="button"
               variant="outline"
@@ -126,21 +107,21 @@ function Header() {
             </Button>
             <Button
               className="bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
-              onClick={goToDemoForm}
+              onClick={() => handleNavClick('#contacto')}
             >
-              Solicitar demo
+              Hablemos
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" aria-label="Abrir menu">
+            <SheetTrigger asChild className="xl:hidden">
+              <Button variant="ghost" size="icon" aria-label="Abrir menú">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] border-border bg-background sm:w-[400px]">
-              <nav className="mt-8 flex flex-col space-y-4">
+              <nav className="mt-8 flex flex-col space-y-4" aria-label="Navegación móvil">
                 {navLinks.map((link) => (
                   <a
                     key={link.name}
@@ -154,20 +135,12 @@ function Header() {
                     {link.name}
                   </a>
                 ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={toggleTheme}
-                  className="mt-2 justify-start border-border bg-card text-foreground hover:bg-muted"
-                >
+                <Button type="button" variant="outline" onClick={toggleTheme} className="mt-2 justify-start border-border bg-card text-foreground hover:bg-muted">
                   {isDark ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
                   {isDark ? 'Tema claro' : 'Tema oscuro'}
                 </Button>
-                <Button
-                  className="mt-4 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
-                  onClick={goToDemoForm}
-                >
-                  Solicitar demo
+                <Button className="mt-4 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]" onClick={() => handleNavClick('#contacto')}>
+                  Hablar con Dyxersoft
                 </Button>
               </nav>
             </SheetContent>
