@@ -21,7 +21,7 @@ function ProductPage({ product }) {
     window.location.href = '/#contacto';
   };
 
-  const primaryAction = product.appUrl ? (
+  const renderPrimaryAction = () => product.appUrl ? (
     <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
       <a href={product.appUrl} target="_blank" rel="noopener noreferrer">Ver plataforma <ArrowRight className="ml-2 h-5 w-5" /></a>
     </Button>
@@ -46,7 +46,7 @@ function ProductPage({ product }) {
             <h1 className="mt-3 text-4xl font-black leading-[1.02] text-foreground md:text-6xl">{product.name}</h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground md:text-xl">{product.description}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              {primaryAction}
+              {renderPrimaryAction()}
               <Button size="lg" variant="outline" onClick={() => requestInformation()} className="border-border bg-card text-foreground hover:bg-muted">
                 {product.slug === 'pigim' ? 'Solicitar demo' : 'Hablar con Dyxersoft'}
               </Button>
@@ -159,7 +159,7 @@ function ProductPage({ product }) {
           <h2 className="text-3xl font-black leading-tight md:text-5xl">Conversemos sobre {product.name} y tu operación.</h2>
           <p className="mx-auto mt-5 text-lg leading-8 text-muted-foreground">Identifiquemos el proceso, los datos o la operación que quieres mejorar.</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            {primaryAction}
+            {renderPrimaryAction()}
             <Button size="lg" variant="outline" onClick={() => requestInformation()} className="border-secondary/35 bg-transparent text-foreground hover:bg-secondary/10 hover:text-secondary">Hablar con Dyxersoft</Button>
           </div>
         </div>
