@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowRight, Layers } from "lucide-react";
 import { productPlatforms } from "@/lib/products/catalog";
 import ProductCards from "@/components/public/products/ProductCards.jsx";
-import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Productos | Software empresarial y datos",
@@ -27,8 +26,8 @@ export default function ProductsPage() {
             <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.02] text-foreground md:text-6xl">Software empresarial construido como un ecosistema.</h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground md:text-xl">Productos especializados para ventas, relaciones, finanzas, datos y operaciones, diseñados para funcionar de manera independiente o como parte de un ecosistema tecnológico conectado.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90"><a href="#catalogo">Explorar productos <ArrowRight className="ml-2 h-5 w-5" /></a></Button>
-              <Button size="lg" variant="outline" asChild className="border-border bg-card text-foreground hover:bg-muted"><Link href="/#contacto">Hablar con Dyxersoft</Link></Button>
+              <a href="#catalogo" className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">Explorar productos <ArrowRight className="h-5 w-5" /></a>
+              <Link href="/#contacto" className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-card px-8 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted">Hablar con Dyxersoft</Link>
             </div>
           </div>
           <div className="surface-panel glow-border rounded-xl p-6">
