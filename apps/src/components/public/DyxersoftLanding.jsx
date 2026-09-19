@@ -37,6 +37,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import ContactForm from '@/components/public/ContactForm.jsx';
+import ProductEcosystem from '@/components/public/products/ProductEcosystem.jsx';
 import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
 import pigimTourScreenshot from '@/assets/screenshots/pigim-dashboard-desktop.jpg';
 import aiDataImage from '@/assets/showcase/ai-data.jpg';
@@ -46,11 +47,11 @@ import cloudInfrastructureImage from '@/assets/showcase/cloud-infrastructure.jpg
 import softwareDevelopmentImage from '@/assets/showcase/software-development.jpg';
 
 const assetSrc = (asset) => (typeof asset === 'string' ? asset : asset.src);
-const PIGIM_APP_URL = 'https://pigim-frontend.onrender.com';
-const SITE_URL = 'https://dyxersoft.github.io/';
+const PIGIM_APP_URL = 'https://pigim.dyxersoft.com';
+const SITE_URL = 'https://www.dyxersoft.com/';
 const SITE_TITLE = 'Dyxersoft | Software a medida, SaaS, datos e IA en Bolivia';
 const SITE_DESCRIPTION =
-  'Dyxersoft desarrolla software a medida, plataformas SaaS, dashboards, automatizacion e inteligencia artificial para empresas que necesitan operar con control y datos confiables.';
+  'Dyxersoft desarrolla plataformas SaaS, software empresarial, soluciones de datos, automatización e inteligencia artificial para empresas que buscan operar con mayor control y convertir sus datos en decisiones.';
 const OG_IMAGE_URL = `${SITE_URL}og-dyxersoft.jpg`;
 
 function HomePage() {
@@ -224,10 +225,10 @@ function HomePage() {
   ];
 
   const benefits = [
-    { value: '-42%', label: 'tiempo de respuesta', detail: 'al centralizar y priorizar incidencias' },
-    { value: '94%', label: 'cumplimiento SLA', detail: 'con alertas y escalamiento oportuno' },
-    { value: '1 vista', label: 'operacion completa', detail: 'tickets, agentes, estados y metricas' },
-    { value: '24/7', label: 'trazabilidad', detail: 'historial auditable de cada caso' },
+    { value: 'Control', label: 'operación conectada', detail: 'procesos y equipos alineados en una misma plataforma' },
+    { value: 'Datos', label: 'información confiable', detail: 'integración, calidad y trazabilidad para decidir mejor' },
+    { value: 'Escala', label: 'tecnología preparada', detail: 'productos y soluciones que evolucionan con el negocio' },
+    { value: 'Impacto', label: 'mejora medible', detail: 'capacidades diseñadas para reducir trabajo manual y fricción' },
   ];
 
   const industries = [
@@ -298,131 +299,69 @@ function HomePage() {
         <section className="blue-hero relative min-h-[calc(100vh-5rem)] overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-1 bg-secondary/70" />
           <div className="section-container relative z-10 grid min-h-[calc(100vh-5rem)] grid-cols-1 items-center gap-12 py-16 lg:grid-cols-[1fr_0.92fr] lg:py-20">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary">
-                Gestion de incidencias empresariales
+                Software empresarial, datos e inteligencia aplicada
               </div>
-
               <div className="space-y-6">
                 <h1 className="max-w-5xl text-4xl font-black leading-[1.02] text-foreground md:text-6xl lg:text-7xl">
-                  Control operativo para empresas que atienden incidencias criticas
+                  Tecnología para operar, conectar y entender mejor tu negocio.
                 </h1>
                 <p className="text-lg leading-8 text-muted-foreground md:text-xl">
-                  Dyxersoft desarrolla PIGIM, una plataforma para centralizar solicitudes, priorizar casos,
-                  controlar SLA y convertir la operacion diaria en informacion confiable para la toma de decisiones.
+                  Dyxersoft desarrolla plataformas SaaS, productos empresariales y soluciones de datos para digitalizar operaciones, automatizar procesos y convertir información en decisiones.
                 </p>
               </div>
-
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="lg"
-                  className="bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
-                  onClick={goToDemoForm}
-                >
-                  Solicitar demo de PIGIM
+                <Button size="lg" className="bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]" onClick={() => scrollTo('#productos')}>
+                  Explorar productos
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="border-border bg-card text-foreground hover:bg-muted"
-                >
-                  <a href={PIGIM_APP_URL} target="_blank" rel="noopener noreferrer">
-                    Ver plataforma
-                  </a>
+                <Button size="lg" variant="outline" onClick={() => scrollTo('#contacto')} className="border-border bg-card text-foreground hover:bg-muted">
+                  Hablar con Dyxersoft
                 </Button>
               </div>
-
               <div className="grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {benefits.map((item) => (
                   <div key={item.label} className="enterprise-card top-accent rounded-lg p-4">
-                    <p className="text-2xl font-black text-secondary">{item.value}</p>
+                    <p className="text-lg font-black text-secondary">{item.value}</p>
                     <p className="mt-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
                   </div>
                 ))}
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.15 }}
-              className="relative"
-            >
-              <div className="surface-panel rounded-xl p-4 md:p-6">
-                <div className="mb-5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img src={assetSrc(logoDx)} alt="" className="h-12 w-12 rounded-lg border border-border object-cover shadow-sm" />
-                    <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Panel operativo</p>
-                      <h2 className="text-2xl font-black text-foreground">PIGIM Live Ops</h2>
-                    </div>
-                  </div>
-                  <div className="rounded-full border border-secondary/20 bg-secondary/10 px-3 py-1 text-xs font-bold text-secondary">
-                    En linea
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="relative">
+              <div className="surface-panel glow-border rounded-xl p-5 md:p-7">
+                <div className="mb-8 flex items-center gap-3">
+                  <img src={assetSrc(logoDx)} alt="" className="h-12 w-12 rounded-lg border border-border object-cover shadow-sm" />
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Dyxersoft</p>
+                    <h2 className="text-2xl font-black text-foreground">Connected business software</h2>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="space-y-4">
                   {[
-                    ['47', 'abiertas'],
-                    ['12', 'criticas'],
-                    ['94.2%', 'SLA'],
-                    ['2.4h', 'promedio'],
-                  ].map(([value, label]) => (
-                    <div key={label} className="rounded-lg border border-border bg-background/45 p-4">
-                      <p className="text-2xl font-black text-foreground">{value}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+                    ['Business Platform', 'DyxerCRM · DyxerSales · DyxerFinance'],
+                    ['Data Platform', 'DyxerFlow · DyxerAnalytics'],
+                    ['Operations', 'PIGIM · Bespa'],
+                  ].map(([platform, products], index) => (
+                    <div key={platform} className="rounded-xl border border-border bg-background/45 p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="font-bold text-foreground">{platform}</p>
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">{index + 1}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-muted-foreground">{products}</p>
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-5 rounded-xl border border-border bg-background/45 p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-bold text-foreground">Incidencias en prioridad</p>
-                    <span className="text-xs text-muted-foreground">actualizado hace 12s</span>
-                  </div>
-                  <div className="space-y-3">
-                    {tickets.map((ticket) => (
-                      <div key={ticket.code} className="grid grid-cols-[1fr_auto] gap-3 rounded-lg border border-border bg-card/75 p-3">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono text-xs text-secondary">{ticket.code}</span>
-                            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
-                              {ticket.level}
-                            </span>
-                          </div>
-                          <p className="mt-1 font-semibold text-foreground">{ticket.title}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-mono text-sm font-bold text-primary">{ticket.time}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{ticket.status}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-5 grid grid-cols-5 gap-2">
-                  {flow.map((step, index) => (
-                    <div key={step} className="relative rounded-lg border border-border bg-background/45 p-3 text-center">
-                      <div className="mx-auto mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">
-                        {index + 1}
-                      </div>
-                      <p className="text-[11px] font-semibold text-muted-foreground">{step}</p>
-                    </div>
-                  ))}
+                <div className="mt-6 rounded-xl border border-secondary/20 bg-secondary/10 p-4 text-sm font-semibold text-secondary">
+                  Productos especializados, conectados por una misma visión de negocio.
                 </div>
               </div>
             </motion.div>
           </div>
         </section>
+
+        <ProductEcosystem />
 
         <section className="bg-background py-20">
           <div className="section-container">
@@ -457,9 +396,9 @@ function HomePage() {
           <div className="section-container">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div className="space-y-6">
-                <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">PIGIM</p>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">Producto destacado · PIGIM</p>
                 <h2 className="text-3xl font-black leading-tight md:text-5xl">
-                  Una plataforma para gobernar incidencias desde el registro hasta la decision.
+                  Una plataforma para gobernar incidencias desde el registro hasta la decisión.
                 </h2>
                 <p className="text-lg leading-8 text-muted-foreground">
                   PIGIM unifica tickets, responsables, prioridades, SLA, evidencia y reportes. La operacion deja de
@@ -500,9 +439,9 @@ function HomePage() {
         <section id="beneficios" className="scroll-mt-24 bg-background py-24">
           <div className="section-container">
             <div className="mb-12 text-center">
-              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Impacto</p>
+              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Capacidades</p>
               <h2 className="mx-auto max-w-4xl text-3xl font-black leading-tight md:text-5xl">
-                Menos ruido operativo. Mas velocidad, control y aprendizaje.
+                Capacidades para operar con más control y convertir datos en decisiones.
               </h2>
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -530,9 +469,9 @@ function HomePage() {
         <section id="servicios" className="scroll-mt-24 bg-card py-24">
           <div className="section-container">
             <div className="mb-12 max-w-4xl">
-              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Dyxersoft</p>
+              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Servicios</p>
               <h2 className="text-3xl font-black leading-tight md:text-5xl">
-                Construimos software con la misma prioridad: que la operacion sea mas inteligente.
+                Servicios especializados para ampliar el impacto de tu tecnología.
               </h2>
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -593,7 +532,7 @@ function HomePage() {
           </div>
         </section>
 
-        <section className="blue-section py-24">
+        <section id="capacidades" className="blue-section scroll-mt-24 py-24">
           <div className="section-container">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
               <motion.div
@@ -635,13 +574,12 @@ function HomePage() {
           <div className="section-container">
             <div className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-4xl">
-                <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Proyectos</p>
+                <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Experiencias y capacidades</p>
                 <h2 className="text-3xl font-black leading-tight md:text-5xl">
-                  Productos y experiencias digitales desarrolladas con enfoque operativo.
+                  Soluciones que construimos para resolver procesos de negocio.
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-muted-foreground">
-                  Una vitrina de soluciones SaaS, portales, interfaces moviles y experiencias web pensadas para
-                  resolver procesos de negocio con claridad, trazabilidad y buen diseno.
+                  Una muestra de experiencias SaaS, software empresarial, datos, automatización, IA y cloud enfocadas en claridad, trazabilidad y evolución operativa.
                 </p>
               </div>
               <Button
@@ -771,10 +709,10 @@ function HomePage() {
             <div className="mx-auto max-w-4xl text-center">
               <Rocket className="mx-auto mb-5 h-10 w-10 text-secondary" />
               <h2 className="text-3xl font-black leading-tight md:text-5xl">
-                Si tus incidencias viven en chats y planillas, estas perdiendo informacion operativa.
+                ¿Tienes un proceso que todavía depende de planillas, sistemas aislados o trabajo manual?
               </h2>
               <p className="mx-auto mt-5 text-lg leading-8 text-muted-foreground">
-                Centraliza, automatiza y convierte cada caso atendido en datos utiles para mejorar la operacion.
+                Podemos ayudarte a convertirlo en una solución digital medible, integrada y preparada para crecer.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Button
@@ -782,7 +720,7 @@ function HomePage() {
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={goToDemoForm}
                 >
-                  Solicitar demo ahora
+                  Hablar con Dyxersoft
                 </Button>
                 <Button
                   size="lg"
@@ -836,9 +774,9 @@ function HomePage() {
           <div className="section-container">
             <div className="mx-auto mb-12 max-w-3xl text-center">
               <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-secondary">Contacto</p>
-              <h2 className="text-3xl font-black leading-tight md:text-5xl">Hablemos de tu operacion</h2>
+              <h2 className="text-3xl font-black leading-tight md:text-5xl">Hablemos de tu negocio</h2>
               <p className="mx-auto mt-5 text-lg leading-8 text-muted-foreground">
-                Cuentanos que canales usas, cuantos casos atiendes y donde se pierde visibilidad. Te mostramos como PIGIM puede ordenar ese flujo.
+                Cuéntanos qué proceso quieres mejorar, conectar o automatizar. Te ayudaremos a identificar el producto o la solución adecuada.
               </p>
             </div>
             <div className="mx-auto max-w-3xl">
