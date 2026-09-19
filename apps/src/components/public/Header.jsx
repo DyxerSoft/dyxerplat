@@ -46,11 +46,20 @@ function Header() {
           </Link>
 
           <nav className="hidden items-center gap-3 xl:flex" aria-label="Navegación principal">
-            <div className="relative" onMouseEnter={() => setIsProductsOpen(true)} onMouseLeave={() => setIsProductsOpen(false)}>
-              <button type="button" onClick={() => setIsProductsOpen((value) => !value)} aria-expanded={isProductsOpen} className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProductsOpen((value) => !value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setIsProductsOpen(false);
+                }}
+                aria-expanded={isProductsOpen}
+                aria-controls="products-navigation-menu"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 Productos <ChevronDown className="h-4 w-4" />
               </button>
-              {isProductsOpen && <div className="absolute left-0 top-full mt-3 w-[620px] rounded-xl border border-border bg-card p-5 shadow-2xl">
+              {isProductsOpen && <div id="products-navigation-menu" className="absolute left-0 top-full mt-2 w-[620px] rounded-xl border border-border bg-card p-5 shadow-2xl">
                 <Link href="/products" onClick={() => setIsProductsOpen(false)} className="mb-5 block rounded-lg bg-muted p-3 text-sm font-bold text-foreground hover:text-primary">Todos los productos <span className="ml-2 text-secondary">→</span></Link>
                 <div className="grid grid-cols-3 gap-5">
                   {productPlatforms.map((platform) => <div key={platform.name}><p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-secondary">{platform.name}</p>{platform.products.map((product) => <Link key={product.slug} href={`/products/${product.slug}`} onClick={() => setIsProductsOpen(false)} className="block py-1 text-sm text-muted-foreground transition hover:text-primary">{product.name}</Link>)}</div>)}
