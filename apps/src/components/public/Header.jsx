@@ -77,7 +77,7 @@ function Header() {
             </span>
           </a>
 
-          <nav className="hidden items-center space-x-4 lg:space-x-6 xl:space-x-7 md:flex" aria-label="Navegación principal">
+          <nav className="hidden items-center space-x-4 lg:space-x-6 xl:space-x-7 xl:flex" aria-label="Navegación principal">
             {navLinks.map((link) => (
               <a
                 key={link.name}
@@ -93,7 +93,7 @@ function Header() {
             ))}
           </nav>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 xl:flex">
             <Button
               type="button"
               variant="outline"
@@ -115,7 +115,7 @@ function Header() {
           </div>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="xl:hidden">
               <Button variant="ghost" size="icon" aria-label="Abrir menú">
                 <Menu className="h-6 w-6" />
               </Button>
