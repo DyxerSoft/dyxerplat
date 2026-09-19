@@ -79,7 +79,7 @@ function HomePage() {
 
   const goToDemoForm = () => {
     try {
-      sessionStorage.setItem('dyxersoft_contact_servicio', 'demo-pigim');
+      sessionStorage.setItem('dyxersoft_contact_servicio', 'PIGIM');
     } catch {
       // ignore storage errors
     }
@@ -718,7 +718,7 @@ function HomePage() {
                 <Button
                   size="lg"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={goToDemoForm}
+                  onClick={() => scrollTo('#contacto')}
                 >
                   Hablar con Dyxersoft
                 </Button>
