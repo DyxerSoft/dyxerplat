@@ -12,7 +12,7 @@ import DyxerFlowWorkflow from '@/components/public/products/DyxerFlowWorkflow.js
 
 function ProductPage({ product }) {
   const relatedProducts = getRelatedProducts(product);
-  const requestInformation = (label = product.name) => {
+  const requestInformation = () => {
     try {
       sessionStorage.setItem('dyxersoft_contact_servicio', product.name);
     } catch {
