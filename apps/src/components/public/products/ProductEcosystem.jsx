@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, BarChart3, BriefcaseBusiness, ContactRound, Database, Package, ReceiptText, ShoppingCart, Workflow } from 'lucide-react';
+import { ArrowRight, BarChart, Briefcase, Database, Gauge, ShoppingCart, Workflow } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ const platformProducts = [
         tagline: 'Customer, Sales & Relationship Intelligence',
         description: 'Centraliza organizaciones, contactos, oportunidades y relaciones comerciales para gestionar ventas e inteligencia de negocio.',
         status: 'En desarrollo',
-        icon: ContactRound,
+        icon: Briefcase,
         contactValue: 'DyxerCRM',
       },
       {
@@ -32,7 +32,7 @@ const platformProducts = [
         tagline: 'Financial Management Platform',
         description: 'Gestión financiera, contabilidad, cuentas por cobrar y pagar, inventario y trazabilidad empresarial.',
         status: 'En desarrollo',
-        icon: ReceiptText,
+        icon: Database,
         contactValue: 'DyxerFinance',
       },
     ],
@@ -54,7 +54,7 @@ const platformProducts = [
         tagline: 'Business Intelligence & Analytics',
         description: 'Convierte datasets empresariales en KPIs, visualizaciones, dashboards e insights para apoyar decisiones.',
         status: 'Próximamente',
-        icon: BarChart3,
+        icon: BarChart,
         contactValue: 'DyxerAnalytics',
       },
     ],
@@ -68,7 +68,7 @@ const platformProducts = [
         tagline: 'Incident & Operations Management',
         description: 'Centraliza incidencias, responsables, prioridades, SLA, evidencias y métricas operativas.',
         status: 'Disponible',
-        icon: BriefcaseBusiness,
+        icon: Gauge,
         url: 'https://pigim.dyxersoft.com',
       },
       {
@@ -76,7 +76,7 @@ const platformProducts = [
         tagline: 'Inventory & Business Operations',
         description: 'Gestión de inventario, productos, movimientos y operaciones comerciales desde una plataforma centralizada.',
         status: 'Beta',
-        icon: Package,
+        icon: ShoppingCart,
         url: 'https://bespa.onrender.com',
       },
     ],
