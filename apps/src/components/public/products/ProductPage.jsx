@@ -87,6 +87,65 @@ function ProductPage({ product }) {
         </div>
       </section>
 
+      <section className="relative z-20 -mt-8 pb-10">
+        <div className="section-container grid gap-4 md:grid-cols-3">
+          {[
+            { icon: Target, title: '¿A quién está dirigido?', text: product.useCases[0] || product.platformDescription },
+            { icon: Workflow, title: '¿Necesitas consultar?', text: 'Conversemos sobre tu operación y resolvamos tus dudas con una orientación personalizada.' },
+            { icon: Check, title: '¿Qué lo hace especial?', text: product.shortDescription }
+          ].map(({ icon: Icon, title, text }) => (
+            <article key={title} className="rounded-xl border border-slate-200 bg-white p-6 shadow-md">
+              <Icon className="mb-3 h-6 w-6 text-primary" aria-hidden="true" />
+              <h2 className="font-bold text-slate-900">{title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-20" style={{ backgroundColor: "#f4f7fb" }}>
+        <div className="section-container grid gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <div className="text-center">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Planes disponibles</p>
+              <h2 className="mt-2 text-3xl font-black text-slate-900">Una opción para cada etapa</h2>
+              <p className="mx-auto mt-2 text-sm text-slate-600">La propuesta se adapta al alcance y las necesidades de tu organización.</p>
+            </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {[
+                { name: 'Inicial', detail: 'Para comenzar', feature: product.capabilities[0] },
+                { name: 'Profesional', detail: 'Más capacidades', feature: product.capabilities[1] || product.capabilities[0] },
+                { name: 'Enterprise', detail: 'Para tu organización', feature: product.capabilities[2] || product.capabilities.at(-1) }
+              ].map((plan, index) => (
+                <article key={plan.name} className={`rounded-xl border bg-white p-5 shadow-sm ${index === 1 ? 'border-primary ring-1 ring-primary' : 'border-slate-200'}`}>
+                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-primary">{plan.detail}</p>
+                  <h3 className="mt-2 text-center text-lg font-black text-slate-900">{plan.name}</h3>
+                  <p className="mt-5 min-h-12 text-center text-sm text-slate-600">{plan.feature || product.name}</p>
+                  <p className="mt-4 text-center font-bold text-slate-900">A cotizar</p>
+                  <Button className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => requestInformation()}>Consultar</Button>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-center">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Módulos del sistema</p>
+              <h2 className="mt-2 text-3xl font-black text-slate-900">Herramientas de {product.name}</h2>
+            </div>
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {product.capabilities.slice(0, 9).map((module) => (
+                <div key={module} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                  <Layers className="h-5 w-5 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-slate-700">{module}</span>
+                </div>
+              ))}
+            </div>
+            {product.capabilities.length > 9 && <p className="mt-4 text-center text-sm font-semibold text-primary">Ver todos los módulos: {product.capabilities.length}</p>}
+          </div>
+        </div>
+      </section>
+
       <section className="py-20" style={{ backgroundColor: "#ffffff" }}>
         <div className="section-container grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
