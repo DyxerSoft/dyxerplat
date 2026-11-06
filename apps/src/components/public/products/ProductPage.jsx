@@ -87,61 +87,61 @@ function ProductPage({ product }) {
         </div>
       </section>
 
-      <section className="relative z-20 -mt-8 pb-10">
-        <div className="section-container grid gap-4 md:grid-cols-3">
-          {[
-            { icon: Target, title: '¿A quién está dirigido?', text: product.useCases[0] || product.platformDescription },
-            { icon: Workflow, title: '¿Necesitas consultar?', text: 'Conversemos sobre tu operación y resolvamos tus dudas con una orientación personalizada.' },
-            { icon: Check, title: '¿Qué lo hace especial?', text: product.shortDescription }
-          ].map(({ icon: Icon, title, text }) => (
-            <article key={title} className="rounded-xl border border-slate-200 bg-white p-6 shadow-md">
-              <Icon className="mb-3 h-6 w-6 text-primary" aria-hidden="true" />
-              <h2 className="font-bold text-slate-900">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
-            </article>
-          ))}
+      <section className="bg-slate-50 pb-12 pt-4">
+        <div className="section-container">
+          <div className="overflow-hidden rounded-2xl text-white shadow-xl" style={{ background: `linear-gradient(125deg, ${visual.hero}, ${visual.primary})` }}>
+            <header className="flex items-center justify-between gap-5 px-6 py-4 md:px-9">
+              <img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-10 w-auto max-w-[150px] object-contain" />
+              <nav className="hidden items-center gap-6 text-xs font-semibold text-white/90 md:flex">
+                <a href="#inicio">Inicio</a><a href="#capacidades">Características</a><a href="#planes">Planes</a><a href="#modulos">Módulos</a><a href="#contacto">FAQ</a>
+              </nav>
+              <Button size="sm" variant="secondary" onClick={() => requestInformation()} className="rounded-full bg-white px-5 font-bold text-slate-900 hover:bg-white/90">Solicitar demo</Button>
+            </header>
+            <div id="inicio" className="grid gap-8 px-6 pb-12 pt-5 md:grid-cols-2 md:items-center md:px-10 md:pb-16">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/75">{product.tagline}</p>
+                <h1 className="mt-3 text-4xl font-black leading-tight md:text-6xl">{product.name}</h1>
+                <h2 className="mt-3 text-xl font-semibold text-white/90">{product.platformDescription}</h2>
+                <p className="mt-4 max-w-xl text-base leading-7 text-white/85 md:text-lg">{product.description}</p>
+                <div className="mt-7 flex flex-wrap gap-3">{renderPrimaryAction()}<Button size="lg" variant="outline" onClick={() => requestInformation()} className="border-white/40 bg-white/10 text-white hover:bg-white/20">Conocer más</Button></div>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative mx-auto w-full max-w-xl">
+                <div className="rounded-2xl border border-white/30 bg-white/95 p-3 shadow-2xl">
+                  <div className="flex items-center gap-1.5 border-b border-slate-200 px-2 pb-3"><i className="h-2.5 w-2.5 rounded-full bg-rose-400"/><i className="h-2.5 w-2.5 rounded-full bg-amber-400"/><i className="h-2.5 w-2.5 rounded-full bg-emerald-400"/><span className="ml-2 text-xs font-semibold text-slate-500">{product.name} · Panel de control</span></div>
+                  <div className="grid min-h-48 grid-cols-[110px_1fr] gap-3 p-3">
+                    <div className="space-y-2 rounded-lg bg-slate-50 p-3">{product.workflow.slice(0,4).map((step,i)=><div key={step} className="flex items-center gap-2 text-[10px] font-medium text-slate-600"><span className="h-2 w-2 rounded-sm" style={{background:visual.secondary}}/>{step}</div>)}</div>
+                    <div><div className="grid grid-cols-3 gap-2">{product.capabilities.slice(0,3).map((item,i)=><div key={item} className="rounded-lg bg-slate-50 p-2 text-center"><span className="mx-auto mb-1 block h-5 w-5 rounded-md" style={{background:visual.secondary,opacity:.8}}/><span className="block truncate text-[9px] font-semibold text-slate-600">{item}</span></div>)}</div><div className="mt-3 flex h-24 items-end gap-2 rounded-lg bg-slate-50 p-3">{[42,68,52,82,60,92,72].map((height,i)=><span key={i} className="flex-1 rounded-t-sm" style={{height:`${height}%`,background:visual.primary,opacity:.35+i*.08}}/>)}</div></div>
+                  </div>
+                </div>
+                <div className="mx-auto h-2 w-[84%] rounded-b-xl bg-slate-300"/><div className="mx-auto h-1 w-[40%] rounded-b-full bg-slate-400"/>
+              </motion.div>
+            </div>
+          </div>
+          <div className="relative z-10 -mt-6 grid gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-lg md:grid-cols-3 md:p-6">
+            {[
+              { icon: Target, title: '¿A quién está dirigido?', text: product.useCases[0] || product.platformDescription },
+              { icon: Workflow, title: '¿Necesitas consultar?', text: 'Solicita una orientación y resuelve tus dudas con nuestro equipo.' },
+              { icon: Check, title: '¿Qué lo hace especial?', text: product.shortDescription }
+            ].map(({icon:Icon,title,text})=><article key={title} className="flex gap-3 border-slate-200 p-3 md:border-r last:border-0"><Icon className="mt-1 h-6 w-6 shrink-0 text-primary"/><div><h2 className="font-bold text-slate-900">{title}</h2><p className="mt-1 text-xs leading-5 text-slate-600">{text}</p></div></article>)}
+          </div>
         </div>
       </section>
 
-      <section className="py-20" style={{ backgroundColor: "#f4f7fb" }}>
-        <div className="section-container grid gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <section id="planes" className="bg-white py-16 md:py-20">
+        <div className="section-container grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <div className="text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Planes disponibles</p>
-              <h2 className="mt-2 text-3xl font-black text-slate-900">Una opción para cada etapa</h2>
-              <p className="mx-auto mt-2 text-sm text-slate-600">La propuesta se adapta al alcance y las necesidades de tu organización.</p>
-            </div>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Planes disponibles</p><h2 className="mt-2 text-3xl font-black text-slate-900">Elige el plan que se adapta a tus necesidades</h2><p className="mt-2 text-sm text-slate-600">Precios referenciales mensuales, sujetos a confirmación comercial.</p></div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
-                { name: 'Inicial', detail: 'Para comenzar', feature: product.capabilities[0] },
-                { name: 'Profesional', detail: 'Más capacidades', feature: product.capabilities[1] || product.capabilities[0] },
-                { name: 'Enterprise', detail: 'Para tu organización', feature: product.capabilities[2] || product.capabilities.at(-1) }
-              ].map((plan, index) => (
-                <article key={plan.name} className={`rounded-xl border bg-white p-5 shadow-sm ${index === 1 ? 'border-primary ring-1 ring-primary' : 'border-slate-200'}`}>
-                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-primary">{plan.detail}</p>
-                  <h3 className="mt-2 text-center text-lg font-black text-slate-900">{plan.name}</h3>
-                  <p className="mt-5 min-h-12 text-center text-sm text-slate-600">{plan.feature || product.name}</p>
-                  <p className="mt-4 text-center font-bold text-slate-900">A cotizar</p>
-                  <Button className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => requestInformation()}>Consultar</Button>
-                </article>
-              ))}
+                {name:'Inicial',price:'Bs. 99',desc:'Perfecto para comenzar',items:product.capabilities.slice(0,2)},
+                {name:'VIP',price:'Bs. 199',desc:'Más capacidades incluidas',items:product.capabilities.slice(0,4)},
+                {name:'Enterprise',price:'Bs. 399',desc:'Para grandes empresas',items:product.capabilities.slice(0,6)}
+              ].map((plan,i)=><article key={plan.name} className={`relative rounded-xl border p-4 text-center ${i===1?'border-primary shadow-lg ring-1 ring-primary':'border-slate-200 shadow-sm'}`}>{i===1&&<span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold text-white" style={{background:visual.primary}}>RECOMENDADO</span>}<h3 className="mt-2 font-bold text-slate-900">{plan.name}</h3><p className="mt-1 text-[11px] text-slate-500">{plan.desc}</p><p className="mt-4 text-xl font-black text-slate-900">{plan.price}<span className="text-xs font-medium text-slate-500">/mes</span></p><ul className="my-4 space-y-2 text-left">{plan.items.map(item=><li key={item} className="flex gap-2 text-[11px] text-slate-600"><Check className="h-3.5 w-3.5 shrink-0 text-emerald-600"/>{item}</li>)}</ul><Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={()=>requestInformation()}>Contratar</Button></article>)}
             </div>
           </div>
-
-          <div>
-            <div className="text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Módulos del sistema</p>
-              <h2 className="mt-2 text-3xl font-black text-slate-900">Herramientas de {product.name}</h2>
-            </div>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {product.capabilities.slice(0, 9).map((module) => (
-                <div key={module} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-                  <Layers className="h-5 w-5 text-primary" aria-hidden="true" />
-                  <span className="text-xs font-semibold text-slate-700">{module}</span>
-                </div>
-              ))}
-            </div>
-            {product.capabilities.length > 9 && <p className="mt-4 text-center text-sm font-semibold text-primary">Ver todos los módulos: {product.capabilities.length}</p>}
+          <div id="modulos">
+            <div className="text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Módulos del sistema</p><h2 className="mt-2 text-3xl font-black text-slate-900">Todo lo que necesitas</h2></div>
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">{product.capabilities.slice(0,9).map(module=><div key={module} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-center"><Layers className="h-6 w-6 text-primary"/><span className="text-xs font-semibold text-slate-700">{module}</span></div>)}</div>{product.capabilities.length>9&&<p className="mt-4 text-center text-xs font-semibold text-primary">Y más módulos para tu operación →</p>}
           </div>
         </div>
       </section>
