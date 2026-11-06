@@ -9,9 +9,29 @@ import { Button } from '@/components/ui/button';
 import { getRelatedProducts } from '@/lib/products/catalog';
 import { statusClass } from '@/components/public/products/ProductCards.jsx';
 import DyxerFlowWorkflow from '@/components/public/products/DyxerFlowWorkflow.jsx';
+import DyxerCrmLogo from '@/app/(public)/logo/dyxercrm.png';
+import DyxerSalesLogo from '@/app/(public)/logo/dyxersales.png';
+import DyxerFinanceLogo from '@/app/(public)/logo/dyxerfinance.png';
+import DyxerFlowLogo from '@/app/(public)/logo/dyxerflow.png';
+import DyxerAnalyticsLogo from '@/app/(public)/logo/exec-ff51abba-e191-4fa9-8697-748406b03c85.png';
+import PigimLogo from '@/app/(public)/logo/pigim.png';
+import BespaLogo from '@/app/(public)/logo/bespa.png';
+
+const productVisuals = {
+  dyxercrm: { logo: DyxerCrmLogo, primary: '#3730a3', secondary: '#6366f1', background: '#090d22', surface: '#111936', text: '#eef2ff' },
+  dyxersales: { logo: DyxerSalesLogo, primary: '#713f12', secondary: '#c08457', background: '#1a100c', surface: '#2b1c16', text: '#fff7ed' },
+  dyxerfinance: { logo: DyxerFinanceLogo, primary: '#166534', secondary: '#c5a342', background: '#08170f', surface: '#10251a', text: '#f0fdf4' },
+  dyxerflow: { logo: DyxerFlowLogo, primary: '#0e7490', secondary: '#22d3ee', background: '#07181d', surface: '#10282e', text: '#ecfeff' },
+  dyxeranalytics: { logo: DyxerAnalyticsLogo, primary: '#6d28d9', secondary: '#a78bfa', background: '#120b20', surface: '#211438', text: '#f5f3ff' },
+  pigim: { logo: PigimLogo, primary: '#14532d', secondary: '#4ade80', background: '#07170e', surface: '#10251a', text: '#f0fdf4' },
+  bespa: { logo: BespaLogo, primary: '#a87916', secondary: '#e5bd55', background: '#11100c', surface: '#211e16', text: '#fffbea' },
+};
+
 
 function ProductPage({ product }) {
   const relatedProducts = getRelatedProducts(product);
+  const visual = productVisuals[product.slug] || productVisuals.dyxercrm;
+  const themeStyle = { '--background': '220 30% 8%', '--foreground': '220 20% 96%', '--card': '220 28% 12%', '--card-foreground': '220 20% 96%', '--primary': '220 70% 42%', '--primary-foreground': '0 0% 100%', '--secondary': '220 75% 65%', '--secondary-foreground': '0 0% 100%', '--muted': '220 25% 17%', '--muted-foreground': '220 15% 72%', '--border': '220 20% 25%', '--input': '220 20% 20%', '--accent': '220 75% 55%', backgroundColor: visual.background, color: visual.text };
   const requestInformation = () => {
     try {
       sessionStorage.setItem('dyxersoft_contact_servicio', product.name);
@@ -32,12 +52,12 @@ function ProductPage({ product }) {
   );
 
   return (
-    <main className="overflow-hidden">
-      <section className="blue-hero relative overflow-hidden py-20 md:py-28">
-        <div className="absolute inset-x-0 top-0 h-1 bg-secondary/70" />
+    <main className="overflow-hidden" style={themeStyle}>
+      <section className="relative overflow-hidden py-20 md:py-28" style={{ background: `radial-gradient(ellipse at 80% 20%, ${visual.primary} 0%, transparent 48%), linear-gradient(135deg, ${visual.background}, ${visual.surface})` }}>
+        <div className="absolute inset-x-0 top-0 h-1" style={{ background: visual.secondary }} />
         <div className="section-container relative z-10 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Link href="/products" className="text-sm font-semibold text-secondary transition hover:text-primary">← Todos los productos</Link>
+            <div className="mb-8 flex items-center justify-between gap-6"><Link href="/products" className="text-sm font-semibold text-secondary transition hover:text-primary">← Todos los productos</Link><img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-12 w-auto max-w-[180px] object-contain" /></div>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Badge variant="outline" className="border-secondary/25 bg-secondary/10 text-secondary">{product.platform}</Badge>
               <Badge variant="outline" className={statusClass(product.status)}>{product.status}</Badge>
@@ -67,7 +87,7 @@ function ProductPage({ product }) {
         </div>
       </section>
 
-      <section className="bg-background py-20">
+      <section className="py-20" style={{ backgroundColor: visual.background }}>
         <div className="section-container grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">El contexto</p>
@@ -77,7 +97,7 @@ function ProductPage({ product }) {
         </div>
       </section>
 
-      <section className="blue-section py-24">
+      <section className="py-24" style={{ background: `linear-gradient(180deg, ${visual.surface}, ${visual.background})` }}>
         <div className="section-container">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">Qué hace</p>
@@ -95,7 +115,7 @@ function ProductPage({ product }) {
       </section>
 
       {product.slug === 'dyxerflow' ? <DyxerFlowWorkflow /> : (
-        <section className="bg-card py-24">
+        <section className="py-24" style={{ backgroundColor: visual.surface }}>
           <div className="section-container grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">Cómo funciona</p>
@@ -113,7 +133,7 @@ function ProductPage({ product }) {
         </section>
       )}
 
-      <section className="bg-background py-24">
+      <section className="py-24" style={{ backgroundColor: visual.background }}>
         <div className="section-container">
           <div className="mb-10">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-secondary">Casos de uso</p>
@@ -153,7 +173,7 @@ function ProductPage({ product }) {
         </div>
       </section>
 
-      <section className="dark-cta border-y border-secondary/15 py-20 text-foreground">
+      <section className="border-y py-20 text-foreground" style={{ background: `linear-gradient(135deg, ${visual.surface}, ${visual.background})`, borderColor: visual.secondary }}>
         <div className="section-container mx-auto max-w-4xl text-center">
           <Workflow className="mx-auto mb-5 h-10 w-10 text-secondary" aria-hidden="true" />
           <h2 className="text-3xl font-black leading-tight md:text-5xl">Conversemos sobre {product.name} y tu operación.</h2>
