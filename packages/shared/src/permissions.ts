@@ -19,7 +19,9 @@ export const PERMISSIONS = {
   POSTS_PUBLISH: "posts:publish",
   LEADS_READ: "leads:read",
   LEADS_UPDATE: "leads:update",
-  LEADS_DELETE: "leads:delete"
+  LEADS_DELETE: "leads:delete",
+  PRODUCTS_READ: "products:read",
+  PRODUCTS_MANAGE: "products:manage"
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
