@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Building2, Inbox, LayoutDashboard, LogOut, Moon, Newspaper, Shield, Sun, Users } from "lucide-react";
+import { Building2, Inbox, LayoutDashboard, LogOut, Moon, Newspaper, Package, Shield, Sun, Users } from "lucide-react";
 import { clearSession, getCurrentUser, getStoredSession, saveSession } from "@/features/auth/auth-service";
 import type { AuthSession } from "@/features/auth/types";
 import { warmCrmCache } from "@/lib/warm-crm-cache";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/leads", label: "Leads", icon: Inbox },
+  { href: "/leads", label: "Contacto", icon: Inbox },
+  { href: "/products", label: "Productos y planes", icon: Package },
   { href: "/companies", label: "Companias", icon: Building2 },
   { href: "/posts", label: "Publicaciones", icon: Newspaper },
   { href: "/users", label: "Usuarios", icon: Users },
