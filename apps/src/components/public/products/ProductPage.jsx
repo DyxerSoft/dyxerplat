@@ -30,11 +30,11 @@ const productVisuals = {
 
 function ProductPage({ product, configuredPlans = [] }) {
   const relatedProducts = getRelatedProducts(product);
-  const visual = productVisuals[product.slug] || productVisuals.dyxercrm;
+  const visual = productVisuals[product.slug] || { ...productVisuals.dyxercrm, logo: null };
   const themeStyle = { '--background': '0 0% 100%', '--foreground': '222 47% 11%', '--card': '0 0% 100%', '--card-foreground': '222 47% 11%', '--primary': visual.primaryHsl, '--primary-foreground': '0 0% 100%', '--secondary': visual.secondaryHsl, '--secondary-foreground': '0 0% 100%', '--muted': '210 40% 96%', '--muted-foreground': '215 16% 40%', '--border': '214 32% 86%', '--input': '214 32% 91%', '--accent': visual.secondaryHsl, backgroundColor: '#ffffff', color: '#172033' };
   const requestInformation = () => {
     try {
-      sessionStorage.setItem('dyxersoft_contact_servicio', product.name);
+      sessionStorage.setItem('dyxersoft_contact_servicio', product.slug);
     } catch {
       // Navigation remains available when storage is unavailable.
     }
@@ -57,7 +57,7 @@ function ProductPage({ product, configuredPlans = [] }) {
         <div className="absolute inset-x-0 top-0 h-1" style={{ background: visual.secondary }} />
         <div className="section-container relative z-10 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="mb-8 flex items-center justify-between gap-6 rounded-xl bg-white px-5 py-3 shadow-sm"><Link href="/products" className="text-sm font-semibold text-slate-700 transition hover:text-primary">← Productos</Link><img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-12 w-auto max-w-[180px] object-contain" /><nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 md:flex"><a href="#capacidades">Características</a><a href="#flujo">Módulos</a><a href="#contacto">Solicitar demo</a></nav></div>
+            <div className="mb-8 flex items-center justify-between gap-6 rounded-xl bg-white px-5 py-3 shadow-sm"><Link href="/products" className="text-sm font-semibold text-slate-700 transition hover:text-primary">← Productos</Link>{visual.logo && <img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-12 w-auto max-w-[180px] object-contain" />}<nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 md:flex"><a href="#capacidades">Características</a><a href="#flujo">Módulos</a><a href="#contacto">Solicitar demo</a></nav></div>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Badge variant="outline" className="border-secondary/25 bg-secondary/10 text-secondary">{product.platform}</Badge>
               <Badge variant="outline" className={statusClass(product.status)}>{product.status}</Badge>
@@ -91,7 +91,7 @@ function ProductPage({ product, configuredPlans = [] }) {
         <div className="section-container">
           <div className="overflow-hidden rounded-2xl text-white shadow-xl" style={{ background: `linear-gradient(125deg, ${visual.hero}, ${visual.primary})` }}>
             <header className="flex items-center justify-between gap-5 px-6 py-4 md:px-9">
-              <img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-10 w-auto max-w-[150px] object-contain" />
+              {visual.logo && <img src={visual.logo.src} alt={`Logo ${product.name}`} className="h-10 w-auto max-w-[150px] object-contain" />}
               <nav className="hidden items-center gap-6 text-xs font-semibold text-white/90 md:flex">
                 <a href="#inicio">Inicio</a><a href="#capacidades">Características</a><a href="#planes">Planes</a><a href="#modulos">Módulos</a><a href="#contacto">FAQ</a>
               </nav>
