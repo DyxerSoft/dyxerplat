@@ -45,12 +45,20 @@ const serviceLabels = Object.fromEntries(serviceOptions);
 
 function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [managedProducts, setManagedProducts] = useState([]);
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     resolver: zodResolver(formSchema),
   });
 
   const servicioValue = watch('servicio');
+  const dynamicServiceLabels = { ...serviceLabels, ...Object.fromEntries(managedProducts.map((product) => [product.slug, product.name])) };
   const inputClass = 'border-border bg-background/55 text-foreground placeholder:text-muted-foreground';
+
+  useEffect(() => {
+    fetch('/api/v1/products/public').then((response) => response.json()).then((payload) => {
+      if (payload?.success && Array.isArray(payload.data)) setManagedProducts(payload.data);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     try {
@@ -77,7 +85,7 @@ function ContactForm() {
           position: data.cargo || null,
           email: data.correo,
           phone: data.telefono,
-          serviceInterest: serviceLabels[data.servicio] || data.servicio,
+          serviceInterest: dynamicServiceLabels[data.servicio] || data.servicio,
           message: data.mensaje,
         }),
       });
@@ -134,6 +142,7 @@ function ContactForm() {
             </SelectTrigger>
             <SelectContent className="border-border bg-card text-foreground">
               {serviceOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+              {managedProducts.filter((product) => !serviceOptions.some(([value]) => value === product.slug)).map((product) => <SelectItem key={product.id} value={product.slug}>{product.name}</SelectItem>)}
             </SelectContent>
           </Select>
           {errors.servicio && <p className="text-sm text-destructive">{errors.servicio.message}</p>}
