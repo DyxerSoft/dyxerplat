@@ -253,6 +253,7 @@ model Lead {
   id              String     @id @default(uuid()) @db.Uuid
   fullName        String     @map("full_name")
   companyName     String     @map("company_name")
+  subject         String     @default("Consulta de producto")
   position        String?
   email           String
   phone           String
