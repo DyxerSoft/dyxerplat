@@ -20,6 +20,7 @@ function toLeadResponse(lead: LeadWithFollowUp) {
   return {
     id: lead.id,
     fullName: lead.fullName,
+    subject: lead.subject,
     companyName: lead.companyName,
     position: lead.position,
     email: lead.email,
@@ -48,6 +49,7 @@ export async function createPublicLead(input: CreatePublicLeadInput) {
   const lead = await prisma.lead.create({
     data: {
       fullName: input.fullName.trim(),
+      subject: input.subject.trim(),
       companyName: input.companyName.trim(),
       position: input.position?.trim() || null,
       email: input.email.trim().toLowerCase(),
@@ -116,6 +118,7 @@ export async function updateLead(leadId: string, input: UpdateLeadInput, actorId
     where: { id: leadId },
     data: {
       ...(input.fullName !== undefined ? { fullName: input.fullName.trim() } : {}),
+      ...(input.subject !== undefined ? { subject: input.subject.trim() } : {}),
       ...(input.companyName !== undefined ? { companyName: input.companyName.trim() } : {}),
       ...(input.position !== undefined ? { position: input.position?.trim() || null } : {}),
       ...(input.email !== undefined ? { email: input.email.trim().toLowerCase() } : {}),
