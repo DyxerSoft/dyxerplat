@@ -3,6 +3,9 @@ import Link from "next/link";
 import { ArrowRight, Layers } from "lucide-react";
 import { productPlatforms } from "@/lib/products/catalog";
 import ProductCards from "@/components/public/products/ProductCards.jsx";
+import { prisma } from "@/server/prisma";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Productos | Software empresarial y datos",
@@ -15,7 +18,8 @@ export const metadata: Metadata = {
   }
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const managedProducts = await prisma.catalogProduct.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
   return (
     <main className="overflow-hidden">
       <section className="blue-hero relative overflow-hidden py-20 md:py-28">
@@ -52,6 +56,13 @@ export default function ProductsPage() {
           ))}
         </div>
       </section>
+
+      {managedProducts.length > 0 && <section className="bg-background pb-20">
+        <div className="section-container">
+          <div className="mb-8 border-l-2 border-secondary pl-4"><p className="text-sm font-bold uppercase tracking-[0.18em] text-secondary">Nuevos productos</p><h2 className="mt-2 text-3xl font-black text-foreground">Más soluciones del catálogo</h2></div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{managedProducts.filter((item) => !productPlatforms.some((group) => group.products.some((product) => product.slug === item.slug))).map((product) => <Link key={product.id} href={`/products/${product.slug}`} className="surface-panel group rounded-xl p-6 transition hover:-translate-y-1"><Layers className="mb-4 h-7 w-7 text-primary"/><h3 className="text-xl font-black text-foreground">{product.name}</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{product.shortDescription}</p><span className="mt-5 inline-flex items-center text-sm font-semibold text-primary">Ver planes <ArrowRight className="ml-2 h-4 w-4"/></span></Link>)}</div>
+        </div>
+      </section>}
 
       <section className="bg-card py-24">
         <div className="section-container grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
