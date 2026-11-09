@@ -28,7 +28,7 @@ const productVisuals = {
 };
 
 
-function ProductPage({ product }) {
+function ProductPage({ product, configuredPlans = [] }) {
   const relatedProducts = getRelatedProducts(product);
   const visual = productVisuals[product.slug] || productVisuals.dyxercrm;
   const themeStyle = { '--background': '0 0% 100%', '--foreground': '222 47% 11%', '--card': '0 0% 100%', '--card-foreground': '222 47% 11%', '--primary': visual.primaryHsl, '--primary-foreground': '0 0% 100%', '--secondary': visual.secondaryHsl, '--secondary-foreground': '0 0% 100%', '--muted': '210 40% 96%', '--muted-foreground': '215 16% 40%', '--border': '214 32% 86%', '--input': '214 32% 91%', '--accent': visual.secondaryHsl, backgroundColor: '#ffffff', color: '#172033' };
@@ -130,13 +130,15 @@ function ProductPage({ product }) {
       <section id="planes" className="bg-white py-16 md:py-20">
         <div className="section-container grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <div className="text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Planes disponibles</p><h2 className="mt-2 text-3xl font-black text-slate-900">Elige el plan que se adapta a tus necesidades</h2><p className="mt-2 text-sm text-slate-600">Precios referenciales mensuales, sujetos a confirmación comercial.</p></div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {[
-                {name:'Inicial',price:'Bs. 99',desc:'Perfecto para comenzar',items:product.capabilities.slice(0,2)},
-                {name:'VIP',price:'Bs. 199',desc:'Más capacidades incluidas',items:product.capabilities.slice(0,4)},
-                {name:'Enterprise',price:'Bs. 399',desc:'Para grandes empresas',items:product.capabilities.slice(0,6)}
-              ].map((plan,i)=><article key={plan.name} className={`relative rounded-xl border p-4 text-center ${i===1?'border-primary shadow-lg ring-1 ring-primary':'border-slate-200 shadow-sm'}`}>{i===1&&<span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold text-white" style={{background:visual.primary}}>RECOMENDADO</span>}<h3 className="mt-2 font-bold text-slate-900">{plan.name}</h3><p className="mt-1 text-[11px] text-slate-500">{plan.desc}</p><p className="mt-4 text-xl font-black text-slate-900">{plan.price}<span className="text-xs font-medium text-slate-500">/mes</span></p><ul className="my-4 space-y-2 text-left">{plan.items.map(item=><li key={item} className="flex gap-2 text-[11px] text-slate-600"><Check className="h-3.5 w-3.5 shrink-0 text-emerald-600"/>{item}</li>)}</ul><Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={()=>requestInformation()}>Contratar</Button></article>)}
+            <div className="text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Planes disponibles</p><h2 className="mt-2 text-3xl font-black text-slate-900">Elige el plan que se adapta a tus necesidades</h2><p className="mt-2 text-sm text-slate-600">Planes, beneficios y precios publicados por nuestro equipo.</p></div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {configuredPlans.length ? configuredPlans.map((plan) => <article key={plan.id || plan.name} className="rounded-xl border border-slate-200 p-4 text-center shadow-sm">
+                <h3 className="mt-2 font-bold text-slate-900">{plan.name}</h3>
+                <p className="mt-4 text-xl font-black text-slate-900">{plan.currency} {Number(plan.price).toLocaleString('es-BO')}<span className="text-xs font-medium text-slate-500"> / mes</span></p>
+                <ul className="my-4 space-y-2 text-left">{plan.benefits.map((item) => <li key={item} className="flex gap-2 text-[11px] text-slate-600"><Check className="h-3.5 w-3.5 shrink-0 text-emerald-600"/>{item}</li>)}</ul>
+                {plan.additionalInfo && <p className="mb-4 text-left text-xs leading-5 text-slate-500">{plan.additionalInfo}</p>}
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => requestInformation()}>Consultar plan</Button>
+              </article>) : <div className="sm:col-span-2 xl:col-span-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-600">Estamos preparando los planes de este producto. Contáctanos para conocer las opciones disponibles.</div>}
             </div>
           </div>
           <div id="modulos">
