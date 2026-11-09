@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProduct, productSlugs } from "@/lib/products/catalog";
+import { getProduct } from "@/lib/products/catalog";
 import ProductPage from "@/components/public/products/ProductPage.jsx";
 import { prisma } from "@/server/prisma";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ slug: string }> };
-
-export function generateStaticParams() {
-  return productSlugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
