@@ -26,13 +26,13 @@ const formSchema = z.object({
 });
 
 const serviceOptions = [
-  ['DyxerCRM', 'DyxerCRM'],
-  ['DyxerSales', 'DyxerSales'],
-  ['DyxerFinance', 'DyxerFinance'],
-  ['DyxerFlow', 'DyxerFlow'],
-  ['DyxerAnalytics', 'DyxerAnalytics'],
-  ['PIGIM', 'PIGIM'],
-  ['Bespa', 'Bespa'],
+  ['dyxercrm', 'DyxerCRM'],
+  ['dyxersales', 'DyxerSales'],
+  ['dyxerfinance', 'DyxerFinance'],
+  ['dyxerflow', 'DyxerFlow'],
+  ['dyxeranalytics', 'DyxerAnalytics'],
+  ['pigim', 'PIGIM'],
+  ['bespa', 'Bespa'],
   ['desarrollo-saas', 'Desarrollo SaaS'],
   ['software-personalizado', 'Software personalizado'],
   ['ingenieria-datos-bi', 'Ingeniería de datos / BI'],
