@@ -276,3 +276,37 @@ model Lead {
   @@index([updatedById])
   @@map("leads")
 }
+
+model CatalogProduct {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String        @unique
+  shortDescription String       @map("short_description")
+  description     String
+  additionalInfo  String?       @map("additional_info")
+  isActive        Boolean       @default(true) @map("is_active")
+  sortOrder       Int           @default(0) @map("sort_order")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  plans           ProductPlan[]
+
+  @@map("catalog_products")
+}
+
+model ProductPlan {
+  id             String         @id @default(uuid()) @db.Uuid
+  productId      String         @map("product_id") @db.Uuid
+  name           String
+  benefits       String[]
+  price          Float
+  currency       String         @default("Bs")
+  additionalInfo String?        @map("additional_info")
+  sortOrder      Int            @default(0) @map("sort_order")
+  isActive       Boolean        @default(true) @map("is_active")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  product        CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@map("product_plans")
+}
