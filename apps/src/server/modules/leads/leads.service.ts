@@ -72,6 +72,8 @@ export async function listLeads(input: ListLeadsInput) {
       ? {
           OR: [
             { fullName: { contains: input.q, mode: "insensitive" } },
+            { subject: { contains: input.q, mode: "insensitive" } },
+            { message: { contains: input.q, mode: "insensitive" } },
             { companyName: { contains: input.q, mode: "insensitive" } },
             { email: { contains: input.q, mode: "insensitive" } },
             { phone: { contains: input.q, mode: "insensitive" } },
