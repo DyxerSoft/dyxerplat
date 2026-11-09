@@ -16,6 +16,7 @@ const LEADS_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1'}/lea
 
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  asunto: z.string().min(2, 'El asunto debe tener al menos 2 caracteres'),
   empresa: z.string().min(1, 'La empresa es requerida'),
   cargo: z.string().optional(),
   correo: z.string().email('Correo electrónico inválido'),
@@ -71,6 +72,7 @@ function ContactForm() {
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: data.nombre,
+          subject: data.asunto,
           companyName: data.empresa,
           position: data.cargo || null,
           email: data.correo,
@@ -99,6 +101,11 @@ function ContactForm() {
           <Label htmlFor="nombre" className="text-foreground">Nombre *</Label>
           <Input id="nombre" {...register('nombre')} placeholder="Tu nombre completo" className={inputClass} />
           {errors.nombre && <p className="text-sm text-destructive">{errors.nombre.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="asunto" className="text-foreground">Asunto *</Label>
+          <Input id="asunto" {...register('asunto')} placeholder="Motivo de tu consulta" className={inputClass} />
+          {errors.asunto && <p className="text-sm text-destructive">{errors.asunto.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="empresa" className="text-foreground">Empresa *</Label>
