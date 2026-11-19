@@ -12,7 +12,7 @@ import { warmCrmCache } from "@/lib/warm-crm-cache";
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/leads", label: "Contacto", icon: Inbox },
-  { href: "/products", label: "Productos y planes", icon: Package },
+  { href: "/catalog-products", label: "Productos y planes", icon: Package },
   { href: "/companies", label: "Companias", icon: Building2 },
   { href: "/posts", label: "Publicaciones", icon: Newspaper },
   { href: "/users", label: "Usuarios", icon: Users },

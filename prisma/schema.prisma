@@ -285,6 +285,7 @@ model CatalogProduct {
   shortDescription String       @map("short_description")
   description     String
   additionalInfo  String?       @map("additional_info")
+  status          String        @default("Disponible")
   isActive        Boolean       @default(true) @map("is_active")
   sortOrder       Int           @default(0) @map("sort_order")
   createdAt       DateTime      @default(now()) @map("created_at")
@@ -302,6 +303,8 @@ model ProductPlan {
   price          Float
   currency       String         @default("Bs")
   additionalInfo String?        @map("additional_info")
+  cardColor      String         @default("#272064") @map("card_color")
+  pdfMediaId     String?        @map("pdf_media_id") @db.Uuid
   sortOrder      Int            @default(0) @map("sort_order")
   isActive       Boolean        @default(true) @map("is_active")
   createdAt      DateTime       @default(now()) @map("created_at")

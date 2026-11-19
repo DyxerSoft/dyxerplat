@@ -22,17 +22,30 @@ export async function getPublicProduct(slug: string) {
 }
 
 export async function createCatalogProduct(input: ProductInput) {
-  return prisma.catalogProduct.create({
-    data: {
+  return prisma.$transaction(async (tx) => {
+    const plans = await Promise.all(input.plans.map(async (plan, sortOrder) => {
+      let pdfMediaId = plan.pdfMediaId ?? null;
+      if (plan.pdfUpload) {
+        const data = Buffer.from(plan.pdfUpload.dataBase64.replace(/^data:[^;]+;base64,/, ""), "base64");
+        if (data.byteLength > 10 * 1024 * 1024 || data.subarray(0, 5).toString() !== "%PDF-") throw new AppError("El PDF debe ser válido y no superar 10 MB.", 422, "INVALID_PLAN_PDF");
+        const media = await tx.mediaFile.create({ data: { fileName: plan.pdfUpload.fileName, mimeType: "application/pdf", size: data.byteLength, data } });
+        pdfMediaId = media.id;
+      }
+      return { name: plan.name, benefits: plan.benefits, price: plan.price, currency: plan.currency, additionalInfo: plan.additionalInfo?.trim() || null, cardColor: plan.cardColor, pdfMediaId, isActive: plan.isActive, sortOrder };
+    }));
+    return tx.catalogProduct.create({
+      data: {
       name: input.name.trim(),
       slug: input.slug.trim(),
       shortDescription: input.shortDescription.trim(),
       description: input.description.trim(),
       additionalInfo: input.additionalInfo?.trim() || null,
+      status: input.status,
       isActive: input.isActive,
-      plans: { create: input.plans.map((plan, sortOrder) => ({ ...plan, sortOrder, additionalInfo: plan.additionalInfo?.trim() || null })) }
+      plans: { create: plans }
     },
     include: includePlans
+  });
   });
 }
 
@@ -41,6 +54,16 @@ export async function updateCatalogProduct(productId: string, input: ProductInpu
   if (!exists) throw new AppError("Producto no encontrado.", 404, "PRODUCT_NOT_FOUND");
   return prisma.$transaction(async (tx) => {
     await tx.productPlan.deleteMany({ where: { productId } });
+    const plans = await Promise.all(input.plans.map(async (plan, sortOrder) => {
+      let pdfMediaId = plan.pdfMediaId ?? null;
+      if (plan.pdfUpload) {
+        const data = Buffer.from(plan.pdfUpload.dataBase64.replace(/^data:[^;]+;base64,/, ""), "base64");
+        if (data.byteLength > 10 * 1024 * 1024 || data.subarray(0, 5).toString() !== "%PDF-") throw new AppError("El PDF debe ser válido y no superar 10 MB.", 422, "INVALID_PLAN_PDF");
+        const media = await tx.mediaFile.create({ data: { fileName: plan.pdfUpload.fileName, mimeType: "application/pdf", size: data.byteLength, data } });
+        pdfMediaId = media.id;
+      }
+      return { name: plan.name, benefits: plan.benefits, price: plan.price, currency: plan.currency, additionalInfo: plan.additionalInfo?.trim() || null, cardColor: plan.cardColor, pdfMediaId, isActive: plan.isActive, sortOrder };
+    }));
     return tx.catalogProduct.update({
       where: { id: productId },
       data: {
@@ -49,8 +72,9 @@ export async function updateCatalogProduct(productId: string, input: ProductInpu
         shortDescription: input.shortDescription.trim(),
         description: input.description.trim(),
         additionalInfo: input.additionalInfo?.trim() || null,
+        status: input.status,
         isActive: input.isActive,
-        plans: { create: input.plans.map((plan, sortOrder) => ({ name: plan.name, benefits: plan.benefits, price: plan.price, currency: plan.currency, additionalInfo: plan.additionalInfo?.trim() || null, isActive: plan.isActive, sortOrder })) }
+        plans: { create: plans }
       },
       include: includePlans
     });

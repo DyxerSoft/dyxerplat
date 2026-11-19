@@ -1,10 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { productPlatforms } from '@/lib/products/catalog';
 import ProductCards from '@/components/public/products/ProductCards.jsx';
 
 function ProductEcosystem() {
+  const [managedProducts, setManagedProducts] = useState([]);
+  useEffect(() => {
+    fetch('/api/v1/products/public').then((response) => response.json()).then((payload) => {
+      if (payload?.success && Array.isArray(payload.data)) setManagedProducts(payload.data);
+    }).catch(() => {});
+  }, []);
+  const groups = productPlatforms.map((platform) => ({
+    ...platform,
+    products: platform.products.map((product) => {
+      const managed = managedProducts.find((item) => item.slug === product.slug);
+      return managed ? { ...product, name: managed.name, status: managed.status, shortDescription: managed.shortDescription, description: managed.description } : product;
+    })
+  }));
+  const additional = managedProducts.filter((item) => !productPlatforms.some((platform) => platform.products.some((product) => product.slug === item.slug))).map((item) => ({
+    slug: item.slug, name: item.name, platform: 'Business Platform', status: 'Disponible', tagline: item.shortDescription,
+    shortDescription: item.shortDescription, description: item.description
+  }));
+  if (additional.length) groups.push({ name: 'Nuevas soluciones', description: 'Productos configurados desde la plataforma.', products: additional });
   return (
     <section id="productos" className="scroll-mt-24 bg-card py-24">
       <div className="section-container">
@@ -14,7 +32,7 @@ function ProductEcosystem() {
           <p className="mt-5 text-lg leading-8 text-muted-foreground">Productos especializados para ventas, relaciones, finanzas, integración de datos, analítica y operaciones empresariales.</p>
         </div>
         <div className="space-y-16">
-          {productPlatforms.map((platform) => (
+          {groups.map((platform) => (
             <div key={platform.name}>
               <div className="mb-6 flex flex-col gap-2 border-l-2 border-secondary pl-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>

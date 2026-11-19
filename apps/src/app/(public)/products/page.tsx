@@ -51,7 +51,10 @@ export default async function ProductsPage() {
                 <p className="text-sm font-bold uppercase tracking-[0.18em] text-secondary">{platform.name}</p>
                 <h2 className="mt-2 text-3xl font-black text-foreground">{platform.description}</h2>
               </div>
-              <ProductCards products={platform.products} />
+              <ProductCards products={platform.products.map((product) => {
+                const managed = managedProducts.find((item) => item.slug === product.slug);
+                return managed ? { ...product, name: managed.name, status: managed.status, shortDescription: managed.shortDescription, description: managed.description } : product;
+              })} />
             </section>
           ))}
         </div>

@@ -7,6 +7,9 @@ const planSchema = z.object({
   price: z.number().nonnegative(),
   currency: z.string().min(1).default("Bs"),
   additionalInfo: z.string().nullable().optional(),
+  cardColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#272064"),
+  pdfMediaId: z.string().uuid().nullable().optional(),
+  pdfUpload: z.object({ fileName: z.string().min(1), mimeType: z.literal("application/pdf"), dataBase64: z.string().min(1) }).nullable().optional(),
   isActive: z.boolean().default(true)
 });
 
@@ -17,6 +20,7 @@ export const createProductSchema = z.object({
     shortDescription: z.string().min(5),
     description: z.string().min(5),
     additionalInfo: z.string().nullable().optional(),
+    status: z.enum(["En beta", "Próximamente", "Disponible"]).default("Disponible"),
     isActive: z.boolean().default(true),
     plans: z.array(planSchema).default([])
   })

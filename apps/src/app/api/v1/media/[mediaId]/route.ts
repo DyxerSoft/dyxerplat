@@ -29,11 +29,14 @@ export async function GET(_request: Request, context: RouteContext) {
       throw new AppError("El archivo no existe o fue eliminado.", 404, "MEDIA_NOT_FOUND");
     }
 
+    const download = new URL(_request.url).searchParams.get("download") === "1";
+    const safeFileName = media.fileName.replace(/[^\x20-\x7E]|[\r\n"\\]/g, "_");
     return new Response(Buffer.from(media.data), {
       status: 200,
       headers: {
         "Content-Type": media.mimeType,
         "Content-Length": String(media.size),
+        ...(download ? { "Content-Disposition": `attachment; filename="${safeFileName}"; filename*=UTF-8''${encodeURIComponent(media.fileName)}` } : {}),
         "Cache-Control": "public, max-age=86400"
       }
     });

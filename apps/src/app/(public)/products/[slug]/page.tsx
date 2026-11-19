@@ -32,7 +32,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
     include: { plans: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } }
   });
   if (!catalogProduct && !managed) notFound();
-  const product = catalogProduct ?? {
+  const product = catalogProduct ? (managed ? {
+    ...catalogProduct,
+    name: managed.name,
+    status: managed.status as typeof catalogProduct.status,
+    shortDescription: managed.shortDescription,
+    description: managed.description,
+    problem: managed.additionalInfo || catalogProduct.problem,
+    seo: { title: `${managed.name} | Dyxersoft`, description: managed.shortDescription }
+  } : catalogProduct) : {
     slug: managed!.slug,
     name: managed!.name,
     platform: "Business Platform" as const,
@@ -62,7 +70,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   return (
     <>
       {softwareApplication && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplication) }} />}
-      <ProductPage product={product} configuredPlans={managed?.plans ?? []} />
+      <ProductPage product={product} configuredPlans={(managed?.plans ?? []) as Array<{ id: string; name: string; price: number; currency: string; benefits: string[]; additionalInfo: string | null }>} />
     </>
   );
 }

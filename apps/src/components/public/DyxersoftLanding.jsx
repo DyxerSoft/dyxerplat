@@ -755,10 +755,10 @@ function HomePage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  ['50+', 'proyectos entregados'],
-                  ['30+', 'clientes activos'],
-                  ['5+', 'anos de experiencia'],
-                  ['100%', 'compromiso con calidad'],
+                  ['Software', 'productos digitales y plataformas'],
+                  ['Datos', 'analítica e integración de información'],
+                  ['A medida', 'soluciones para cada operación'],
+                  ['Cercanía', 'acompañamiento de principio a fin'],
                 ].map(([value, label]) => (
                   <div key={label} className="rounded-xl border border-border bg-card p-6 text-center shadow-sm">
                     <p className="text-4xl font-black text-primary">{value}</p>
