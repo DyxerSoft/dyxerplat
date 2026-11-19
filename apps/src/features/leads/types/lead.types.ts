@@ -11,6 +11,7 @@ export type LeadFollowedBy = {
 export type Lead = {
   id: string;
   fullName: string;
+  subject: string;
   companyName: string;
   position: string | null;
   email: string;

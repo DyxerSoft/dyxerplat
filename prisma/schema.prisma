@@ -253,6 +253,7 @@ model Lead {
   id              String     @id @default(uuid()) @db.Uuid
   fullName        String     @map("full_name")
   companyName     String     @map("company_name")
+  subject         String     @default("Consulta de producto")
   position        String?
   email           String
   phone           String
@@ -275,4 +276,41 @@ model Lead {
   @@index([createdAt])
   @@index([updatedById])
   @@map("leads")
+}
+
+model CatalogProduct {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String        @unique
+  shortDescription String       @map("short_description")
+  description     String
+  additionalInfo  String?       @map("additional_info")
+  status          String        @default("Disponible")
+  isActive        Boolean       @default(true) @map("is_active")
+  sortOrder       Int           @default(0) @map("sort_order")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  plans           ProductPlan[]
+
+  @@map("catalog_products")
+}
+
+model ProductPlan {
+  id             String         @id @default(uuid()) @db.Uuid
+  productId      String         @map("product_id") @db.Uuid
+  name           String
+  benefits       String[]
+  price          Float
+  currency       String         @default("Bs")
+  additionalInfo String?        @map("additional_info")
+  cardColor      String         @default("#272064") @map("card_color")
+  pdfMediaId     String?        @map("pdf_media_id") @db.Uuid
+  sortOrder      Int            @default(0) @map("sort_order")
+  isActive       Boolean        @default(true) @map("is_active")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  product        CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@map("product_plans")
 }

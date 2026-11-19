@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { getAppUrl } from "@/server/env";
 import { prisma } from "@/server/prisma";
 import { AppError } from "@/server/common/AppError";
 import type { CreatePostInput, ListPostsInput, TaxonomyInput, UpdatePostInput } from "./posts.schemas";
@@ -36,7 +35,7 @@ async function buildUniqueSlug(title: string, postId?: string) {
 }
 
 function mediaUrl(mediaId: string | null) {
-  return mediaId ? `${getAppUrl()}/api/v1/media/${mediaId}` : null;
+  return mediaId ? `/api/v1/media/${mediaId}` : null;
 }
 
 function toPostResponse(

@@ -16,6 +16,7 @@ const LEADS_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1'}/lea
 
 const formSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  asunto: z.string().min(2, 'El asunto debe tener al menos 2 caracteres'),
   empresa: z.string().min(1, 'La empresa es requerida'),
   cargo: z.string().optional(),
   correo: z.string().email('Correo electrónico inválido'),
@@ -25,13 +26,13 @@ const formSchema = z.object({
 });
 
 const serviceOptions = [
-  ['DyxerCRM', 'DyxerCRM'],
-  ['DyxerSales', 'DyxerSales'],
-  ['DyxerFinance', 'DyxerFinance'],
-  ['DyxerFlow', 'DyxerFlow'],
-  ['DyxerAnalytics', 'DyxerAnalytics'],
-  ['PIGIM', 'PIGIM'],
-  ['Bespa', 'Bespa'],
+  ['dyxercrm', 'DyxerCRM'],
+  ['dyxersales', 'DyxerSales'],
+  ['dyxerfinance', 'DyxerFinance'],
+  ['dyxerflow', 'DyxerFlow'],
+  ['dyxeranalytics', 'DyxerAnalytics'],
+  ['pigim', 'PIGIM'],
+  ['bespa', 'Bespa'],
   ['desarrollo-saas', 'Desarrollo SaaS'],
   ['software-personalizado', 'Software personalizado'],
   ['ingenieria-datos-bi', 'Ingeniería de datos / BI'],
@@ -44,12 +45,20 @@ const serviceLabels = Object.fromEntries(serviceOptions);
 
 function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [managedProducts, setManagedProducts] = useState([]);
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     resolver: zodResolver(formSchema),
   });
 
   const servicioValue = watch('servicio');
+  const dynamicServiceLabels = { ...serviceLabels, ...Object.fromEntries(managedProducts.map((product) => [product.slug, product.name])) };
   const inputClass = 'border-border bg-background/55 text-foreground placeholder:text-muted-foreground';
+
+  useEffect(() => {
+    fetch('/api/v1/products/public').then((response) => response.json()).then((payload) => {
+      if (payload?.success && Array.isArray(payload.data)) setManagedProducts(payload.data);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     try {
@@ -71,11 +80,12 @@ function ContactForm() {
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: data.nombre,
+          subject: data.asunto,
           companyName: data.empresa,
           position: data.cargo || null,
           email: data.correo,
           phone: data.telefono,
-          serviceInterest: serviceLabels[data.servicio] || data.servicio,
+          serviceInterest: dynamicServiceLabels[data.servicio] || data.servicio,
           message: data.mensaje,
         }),
       });
@@ -99,6 +109,11 @@ function ContactForm() {
           <Label htmlFor="nombre" className="text-foreground">Nombre *</Label>
           <Input id="nombre" {...register('nombre')} placeholder="Tu nombre completo" className={inputClass} />
           {errors.nombre && <p className="text-sm text-destructive">{errors.nombre.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="asunto" className="text-foreground">Asunto *</Label>
+          <Input id="asunto" {...register('asunto')} placeholder="Motivo de tu consulta" className={inputClass} />
+          {errors.asunto && <p className="text-sm text-destructive">{errors.asunto.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="empresa" className="text-foreground">Empresa *</Label>
@@ -127,6 +142,7 @@ function ContactForm() {
             </SelectTrigger>
             <SelectContent className="border-border bg-card text-foreground">
               {serviceOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+              {managedProducts.filter((product) => !serviceOptions.some(([value]) => value === product.slug)).map((product) => <SelectItem key={product.id} value={product.slug}>{product.name}</SelectItem>)}
             </SelectContent>
           </Select>
           {errors.servicio && <p className="text-sm text-destructive">{errors.servicio.message}</p>}

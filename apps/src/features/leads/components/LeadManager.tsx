@@ -217,8 +217,10 @@ export function LeadManager() {
         >
           <TableHead
             columns={[
-              { label: "Contacto" },
-              { label: "Servicio" },
+              { label: "Nombre y contacto" },
+              { label: "Asunto" },
+              { label: "Producto" },
+              { label: "Mensaje" },
               { label: "Estado" },
               { label: "Seguimiento" },
               { label: "Recibido" },
@@ -227,7 +229,7 @@ export function LeadManager() {
           />
           <tbody>
             {isLoading ? (
-              <LoadingRow colSpan={6} label="Cargando leads..." />
+              <LoadingRow colSpan={8} label="Cargando leads..." />
             ) : (
               leads.map((lead) => (
                 <tr key={lead.id} className="border-t border-border transition hover:bg-muted/30">
@@ -238,7 +240,9 @@ export function LeadManager() {
                       {lead.email} · {lead.phone}
                     </div>
                   </td>
+                  <td className="px-4 py-3 text-sm text-foreground">{lead.subject}</td>
                   <td className="px-4 py-3 text-sm text-foreground">{lead.serviceInterest}</td>
+                  <td className="max-w-xs px-4 py-3 text-sm text-muted-foreground"><span className="line-clamp-2">{lead.message}</span></td>
                   <td className="px-4 py-3">
                     <StatusPill tone={statusTone(lead.status)}>{statusLabel(lead.status)}</StatusPill>
                   </td>
@@ -280,6 +284,7 @@ export function LeadManager() {
             <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
               <p className="font-semibold text-foreground">{editingLead.fullName}</p>
               <p className="text-muted-foreground">{editingLead.companyName}</p>
+              <p className="mt-2 font-semibold text-foreground">Asunto: {editingLead.subject}</p>
               {editingLead.position ? <p className="text-muted-foreground">{editingLead.position}</p> : null}
               <p className="mt-2 text-muted-foreground">
                 {editingLead.email} · {editingLead.phone}
