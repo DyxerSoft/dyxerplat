@@ -40,7 +40,7 @@ export default function ProductCards({ products, compact = false }) {
           >
             <div className="mb-6 flex items-start justify-between gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                <Icon className="h-6 w-6" aria-hidden="true" />
+                {product.logoUrl ? <img src={product.logoUrl} alt="" className="h-10 w-10 object-contain" /> : <Icon className="h-6 w-6" aria-hidden="true" />}
               </div>
               <Badge variant="outline" className={statusClass(product.status)}>{product.status}</Badge>
             </div>

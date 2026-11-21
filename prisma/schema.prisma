@@ -285,6 +285,7 @@ model CatalogProduct {
   shortDescription String       @map("short_description")
   description     String
   additionalInfo  String?       @map("additional_info")
+  logoMediaId     String?       @map("logo_media_id") @db.Uuid
   status          String        @default("Disponible")
   isActive        Boolean       @default(true) @map("is_active")
   sortOrder       Int           @default(0) @map("sort_order")

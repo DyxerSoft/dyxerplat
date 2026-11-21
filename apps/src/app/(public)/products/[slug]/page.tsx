@@ -35,6 +35,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = catalogProduct ? (managed ? {
     ...catalogProduct,
     name: managed.name,
+    logoUrl: managed.logoMediaId ? `/api/v1/media/${managed.logoMediaId}` : null,
     status: managed.status as typeof catalogProduct.status,
     shortDescription: managed.shortDescription,
     description: managed.description,
@@ -43,6 +44,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   } : catalogProduct) : {
     slug: managed!.slug,
     name: managed!.name,
+    logoUrl: managed!.logoMediaId ? `/api/v1/media/${managed!.logoMediaId}` : null,
     platform: "Business Platform" as const,
     platformDescription: "Producto del catálogo Dyxersoft.",
     status: "Disponible" as const,

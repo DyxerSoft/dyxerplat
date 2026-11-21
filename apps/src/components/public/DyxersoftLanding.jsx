@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/carousel';
 import ContactForm from '@/components/public/ContactForm.jsx';
 import ProductEcosystem from '@/components/public/products/ProductEcosystem.jsx';
-import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
+import logoDx from '@/assets/dyxersoft-logo-new.png';
 import pigimTourScreenshot from '@/assets/screenshots/pigim-dashboard-desktop.jpg';
 import aiDataImage from '@/assets/showcase/ai-data.jpg';
 import analyticsBiImage from '@/assets/showcase/analytics-bi.jpg';
@@ -332,7 +332,7 @@ function HomePage() {
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="relative">
               <div className="surface-panel glow-border rounded-xl p-5 md:p-7">
                 <div className="mb-8 flex items-center gap-3">
-                  <img src={assetSrc(logoDx)} alt="" className="h-12 w-12 rounded-lg border border-border object-cover shadow-sm" />
+                  <img src={assetSrc(logoDx)} alt="Dyxersoft" className="h-12 w-auto max-w-[150px] object-contain" />
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Dyxersoft</p>
                     <h2 className="text-2xl font-black text-foreground">Connected business software</h2>
@@ -793,4 +793,3 @@ function HomePage() {
 }
 
 export default HomePage;
-

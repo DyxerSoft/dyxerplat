@@ -27,6 +27,7 @@ const productVisuals = {
 /** @param {{ product: any, configuredPlans?: Array<{ id?: string, name: string, price: number, currency: string, benefits: string[], additionalInfo: string | null, cardColor?: string, pdfMediaId?: string | null }> }} props */
 export default function ProductPage({ product, configuredPlans = [] }) {
   const visual = productVisuals[product.slug] || { ...productVisuals.dyxercrm, logo: null };
+  const managedLogo = product.logoUrl ? { src: product.logoUrl } : null;
   const relatedProducts = getRelatedProducts(product);
   const requestInformation = () => {
     try { sessionStorage.setItem('dyxersoft_contact_servicio', product.slug); } catch {}
@@ -40,7 +41,7 @@ export default function ProductPage({ product, configuredPlans = [] }) {
         <div className="section-container relative z-10 pb-16 pt-6 md:pb-24 md:pt-8">
           <header className="flex flex-wrap items-center justify-between gap-5">
             <Link href="/products" className="flex items-center gap-3 text-xl font-black text-white">
-              {visual.logo && <img src={visual.logo.src} alt="" className="h-9 w-auto max-w-[130px] object-contain" />}{product.name}
+              {(managedLogo || visual.logo) && <img src={(managedLogo || visual.logo).src} alt="" className="h-9 w-auto max-w-[130px] object-contain" />}{product.name}
             </Link>
             <nav className="flex flex-wrap items-center gap-5 text-sm font-semibold text-white/85">
               <a href="#inicio" className="hover:text-white">Inicio</a><a href="#capacidades" className="hover:text-white">Características</a>

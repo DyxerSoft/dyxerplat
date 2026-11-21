@@ -20,6 +20,12 @@ export const createProductSchema = z.object({
     shortDescription: z.string().min(5),
     description: z.string().min(5),
     additionalInfo: z.string().nullable().optional(),
+    logoMediaId: z.string().uuid().nullable().optional(),
+    logoUpload: z.object({
+      fileName: z.string().min(1),
+      mimeType: z.enum(["image/png", "image/jpeg", "image/webp", "image/svg+xml"]),
+      dataBase64: z.string().min(1)
+    }).nullable().optional(),
     status: z.enum(["En beta", "Próximamente", "Disponible"]).default("Disponible"),
     isActive: z.boolean().default(true),
     plans: z.array(planSchema).default([])

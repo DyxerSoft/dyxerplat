@@ -4,7 +4,7 @@ import { getStoredSession } from "@/features/auth/auth-service";
 
 export type ProductPlan = { id?: string; name: string; benefits: string[]; price: number; currency: string; additionalInfo: string | null; isActive: boolean; cardColor: string; pdfMediaId?: string | null; pdfUpload?: { fileName: string; mimeType: "application/pdf"; dataBase64: string } | null };
 export type ProductStatus = "En beta" | "Próximamente" | "Disponible";
-export type CatalogProduct = { id: string; name: string; slug: string; shortDescription: string; description: string; additionalInfo: string | null; status: ProductStatus; isActive: boolean; plans: ProductPlan[] };
+export type CatalogProduct = { id: string; name: string; slug: string; shortDescription: string; description: string; additionalInfo: string | null; logoMediaId: string | null; logoUrl: string | null; status: ProductStatus; isActive: boolean; plans: ProductPlan[] };
 export type ProductInput = Omit<CatalogProduct, "id">;
 const token = () => getStoredSession()?.token ?? null;
 

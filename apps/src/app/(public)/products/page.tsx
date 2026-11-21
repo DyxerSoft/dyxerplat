@@ -53,7 +53,7 @@ export default async function ProductsPage() {
               </div>
               <ProductCards products={platform.products.map((product) => {
                 const managed = managedProducts.find((item) => item.slug === product.slug);
-                return managed ? { ...product, name: managed.name, status: managed.status, shortDescription: managed.shortDescription, description: managed.description } : product;
+                return managed ? { ...product, name: managed.name, status: managed.status, shortDescription: managed.shortDescription, description: managed.description, logoUrl: managed.logoMediaId ? `/api/v1/media/${managed.logoMediaId}` : null } : product;
               })} />
             </section>
           ))}
@@ -63,7 +63,7 @@ export default async function ProductsPage() {
       {managedProducts.length > 0 && <section className="bg-background pb-20">
         <div className="section-container">
           <div className="mb-8 border-l-2 border-secondary pl-4"><p className="text-sm font-bold uppercase tracking-[0.18em] text-secondary">Nuevos productos</p><h2 className="mt-2 text-3xl font-black text-foreground">Más soluciones del catálogo</h2></div>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{managedProducts.filter((item) => !productPlatforms.some((group) => group.products.some((product) => product.slug === item.slug))).map((product) => <Link key={product.id} href={`/products/${product.slug}`} className="surface-panel group rounded-xl p-6 transition hover:-translate-y-1"><Layers className="mb-4 h-7 w-7 text-primary"/><h3 className="text-xl font-black text-foreground">{product.name}</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{product.shortDescription}</p><span className="mt-5 inline-flex items-center text-sm font-semibold text-primary">Ver planes <ArrowRight className="ml-2 h-4 w-4"/></span></Link>)}</div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{managedProducts.filter((item) => !productPlatforms.some((group) => group.products.some((product) => product.slug === item.slug))).map((product) => <Link key={product.id} href={`/products/${product.slug}`} className="surface-panel group rounded-xl p-6 transition hover:-translate-y-1">{product.logoMediaId?<img src={`/api/v1/media/${product.logoMediaId}`} alt="" className="mb-4 h-14 w-14 rounded-lg object-contain"/>:<Layers className="mb-4 h-7 w-7 text-primary"/>}<h3 className="text-xl font-black text-foreground">{product.name}</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{product.shortDescription}</p><span className="mt-5 inline-flex items-center text-sm font-semibold text-primary">Ver planes <ArrowRight className="ml-2 h-4 w-4"/></span></Link>)}</div>
         </div>
       </section>}
 

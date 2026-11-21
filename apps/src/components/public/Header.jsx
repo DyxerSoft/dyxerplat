@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ArrowRight, ChevronDown, Menu, Moon, Sun } from 'lucide-react';
-import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
+import logoDx from '@/assets/dyxersoft-logo-new.png';
 import { productPlatforms } from '@/lib/products/catalog';
 
 const assetSrc = (asset) => (typeof asset === 'string' ? asset : asset.src);
@@ -41,12 +41,18 @@ function Header() {
       <div className="section-container">
         <div className="flex h-16 items-center justify-between md:h-20">
           <Link href="/" className="flex items-center gap-3 rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" aria-label="Volver al inicio de Dyxersoft">
-            <img src={assetSrc(logoDx)} alt="" className="h-11 w-11 rounded-lg border border-secondary/20 object-cover shadow-[0_0_22px_rgba(14,165,233,0.16)]" />
+            <img src={assetSrc(logoDx)} alt="Dyxersoft" className="h-11 w-auto max-w-[110px] object-contain" />
             <span className="flex flex-col leading-none"><span className="text-lg font-bold tracking-wide text-foreground">Dyxersoft</span><span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">Software, datos e IA</span></span>
           </Link>
 
           <nav className="hidden items-center gap-3 xl:flex" aria-label="Navegación principal">
             <div className="relative">
+              <Link
+                href="/products"
+                className="rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Productos
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsProductsOpen((value) => !value)}
@@ -55,9 +61,10 @@ function Header() {
                 }}
                 aria-expanded={isProductsOpen}
                 aria-controls="products-navigation-menu"
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Abrir menú desplegable de productos"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Productos <ChevronDown className="h-4 w-4" />
+                <ChevronDown className={`h-4 w-4 transition-transform ${isProductsOpen ? 'rotate-180' : ''}`} />
               </button>
               {isProductsOpen && <div id="products-navigation-menu" className="absolute left-0 top-full mt-2 w-[620px] rounded-xl border border-border bg-card p-5 shadow-2xl">
                 <Link href="/products" onClick={() => setIsProductsOpen(false)} className="mb-5 block rounded-lg bg-muted p-3 text-sm font-bold text-foreground hover:text-primary">Todos los productos <span className="ml-2 text-secondary">→</span></Link>
