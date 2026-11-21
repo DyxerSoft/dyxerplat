@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const managedProducts = await prisma.catalogProduct.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+  const managedProducts = await prisma.catalogProduct.findMany({ where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }).catch(() => []);
   return (
     <main className="overflow-hidden">
       <section className="blue-hero relative overflow-hidden py-20 md:py-28">
