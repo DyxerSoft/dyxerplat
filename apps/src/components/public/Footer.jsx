@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Facebook, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
-import logoDx from '@/assets/dyxersoft-logo-dx-v2.png';
+import logoDx from '@/assets/dyxersoft-logo-new.png';
 import { productPlatforms } from '@/lib/products/catalog';
 
 const assetSrc = (asset) => (typeof asset === 'string' ? asset : asset.src);
@@ -16,7 +16,7 @@ function Footer() {
       <div className="section-container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-[1.3fr_1fr_0.8fr_1fr]">
           <div className="space-y-4">
-            <div className="flex items-center gap-3"><img src={assetSrc(logoDx)} alt="" className="h-12 w-12 rounded-lg border border-secondary/20 object-cover shadow-[0_0_22px_rgba(14,165,233,0.14)]" /><div><h3 className="text-2xl font-bold">Dyxersoft</h3><p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Software empresarial, datos e IA</p></div></div>
+            <div className="flex items-center gap-3"><img src={assetSrc(logoDx)} alt="Dyxersoft" className="h-12 w-auto max-w-[150px] object-contain" /><div><h3 className="text-2xl font-bold">Dyxersoft</h3><p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Software empresarial, datos e IA</p></div></div>
             <p className="text-sm leading-relaxed text-muted-foreground">Plataformas empresariales, soluciones de datos y automatización para operar con más control y tomar mejores decisiones.</p>
           </div>
           <div className="space-y-4">

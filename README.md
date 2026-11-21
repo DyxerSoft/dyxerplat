@@ -11,35 +11,34 @@ Plataforma Dyxerplat para landing publica, blog y CRM interno de DyxerSoft.
 
 ## Desarrollo local
 
-1. Instalar dependencias:
+Prerequisitos: Node.js, Corepack y Docker Desktop en ejecucion.
 
-```bash
-yarn install
+1. Instalar dependencias y crear el archivo de entorno:
+
+```powershell
+corepack yarn install
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 ```
+
+Si `DATABASE_URL` apunta a `localhost:5433` y Prisma no logra conectarse, cambia `localhost` por `127.0.0.1` en esa variable.
 
 2. Levantar PostgreSQL:
 
 ```bash
-yarn docker:up
+corepack yarn docker:up
 ```
 
-3. Ejecutar migraciones y seed:
+3. Aplicar migraciones y cargar los datos iniciales:
 
 ```bash
-yarn db:migrate
-yarn db:seed
+corepack yarn db:migrate
+corepack yarn db:seed
 ```
 
-4. Copiar variables de entorno:
+4. Levantar la app (front + API en un solo proceso):
 
 ```bash
-cp .env.example .env
-```
-
-5. Levantar la app (front + API en un solo proceso):
-
-```bash
-yarn dev
+corepack yarn dev
 ```
 
 ## URLs locales

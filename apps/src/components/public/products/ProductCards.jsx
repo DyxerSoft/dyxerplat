@@ -19,7 +19,8 @@ const icons = {
 
 export function statusClass(status) {
   if (status === 'Disponible') return 'border-primary/25 bg-primary/10 text-primary';
-  if (status === 'Beta') return 'border-secondary/25 bg-secondary/10 text-secondary';
+  if (status === 'En beta' || status === 'Beta') return 'border-secondary/25 bg-secondary/10 text-secondary';
+  if (status === 'Próximamente' || status === 'Proximamente' || status === 'PrÃ³ximamente') return 'border-amber-500/25 bg-amber-500/10 text-amber-700';
   return 'border-border bg-muted text-muted-foreground';
 }
 
@@ -35,11 +36,11 @@ export default function ProductCards({ products, compact = false }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.18 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
-            className="enterprise-card top-accent flex min-h-[310px] flex-col rounded-xl p-6"
+            className="enterprise-card top-accent group flex min-h-[330px] flex-col overflow-hidden rounded-2xl p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
           >
             <div className="mb-6 flex items-start justify-between gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-primary">
-                <Icon className="h-6 w-6" aria-hidden="true" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                {product.logoUrl ? <img src={product.logoUrl} alt="" className="h-10 w-10 object-contain" /> : <Icon className="h-6 w-6" aria-hidden="true" />}
               </div>
               <Badge variant="outline" className={statusClass(product.status)}>{product.status}</Badge>
             </div>

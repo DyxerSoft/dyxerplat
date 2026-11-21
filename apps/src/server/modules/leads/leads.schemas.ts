@@ -5,6 +5,7 @@ export const leadStatusSchema = z.enum(["NEW", "IN_CONTACT", "CLOSED_WON", "CLOS
 export const createPublicLeadSchema = z.object({
   body: z.object({
     fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
+    subject: z.string().min(2, "El asunto debe tener al menos 2 caracteres."),
     companyName: z.string().min(1, "La empresa es requerida."),
     position: z.string().optional().nullable(),
     email: z.string().email("El correo no es valido."),
@@ -34,6 +35,7 @@ export const updateLeadSchema = leadParamsSchema.extend({
     status: leadStatusSchema.optional(),
     notes: z.string().optional().nullable(),
     fullName: z.string().min(2).optional(),
+    subject: z.string().min(2).optional(),
     companyName: z.string().min(1).optional(),
     position: z.string().optional().nullable(),
     email: z.string().email().optional(),
