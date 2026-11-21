@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const product = getProduct(slug);
   if (!product) {
-    const managed = await prisma.catalogProduct.findFirst({ where: { slug, isActive: true }, select: { name: true, shortDescription: true } });
+    const managed = await prisma.catalogProduct.findFirst({ where: { slug, isActive: true }, select: { name: true, shortDescription: true } }).catch(() => null);
     return managed ? { title: `${managed.name} | Dyxersoft`, description: managed.shortDescription } : {};
   }
   const path = `/products/${product.slug}`;
@@ -30,7 +30,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const managed = await prisma.catalogProduct.findFirst({
     where: { slug, isActive: true },
     include: { plans: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } }
-  });
+  }).catch(() => null);
   if (!catalogProduct && !managed) notFound();
   const product = catalogProduct ? (managed ? {
     ...catalogProduct,
